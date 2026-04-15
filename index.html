@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v8.8 Cloud + Notes + Payouts</title>
+    <title>FinanceFlow Pro v8.9 Cloud + Payouts + Qty</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -55,7 +55,7 @@
 
 <div id="dashboard" style="display:none; width: 100%;">
     <div class="sidebar">
-        <div class="logo">FINANCE FLOW 8.8</div>
+        <div class="logo">FINANCE FLOW 8.9</div>
         <div class="nav-item active" onclick="showPage('overview', this)">Обзор</div>
         <div class="nav-item" onclick="showPage('transactions', this)">Транзакции</div>
         <div class="nav-item" onclick="showPage('investments', this)">Инвестиции</div>
@@ -159,6 +159,7 @@
     <div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Дивиденды в год"></div>
     <input type="date" id="invBuyDate">
     <button class="btn-main" onclick="saveAsset()">Добавить</button>
+    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button>
 </div></div>
 
 <div id="payoutModal" class="modal"><div class="modal-content">
@@ -397,23 +398,24 @@
         // ИНВЕСТИЦИИ: РАСЧЕТЫ
         const invSummary = {};
         db.inv.forEach(i => {
-            if(!invSummary[i.name]) invSummary[i.name] = { cost: 0, proj_gross: 0, paid_gross: 0 };
+            if(!invSummary[i.name]) invSummary[i.name] = { cost: 0, proj_gross: 0, paid_gross: 0, qty: 0 };
             invSummary[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0);
             invSummary[i.name].proj_gross += (i.qty * i.yield);
+            invSummary[i.name].qty += i.qty; // ОБЩЕЕ КОЛИЧЕСТВО ШТУК
         });
 
-        // ПРИВЯЗКА КУПОНОВ ИЗ ИСТОРИИ К ОБЩЕЙ ТАБЛИЦЕ
         db.payouts.forEach(p => { 
             if(invSummary[p.assetName]) invSummary[p.assetName].paid_gross += p.amount; 
         });
         
-        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Вложено</th><th>Купоны (гряз.)</th><th>Год (гряз.)</th></tr></thead>` + 
-            Object.keys(invSummary).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td style="color:var(--green)">${invSummary[n].paid_gross.toLocaleString()} ₽</td><td>${invSummary[n].proj_gross.toLocaleString()} ₽</td></tr>`).join('');
+        // ВЫВОД ОБЩЕЙ ТАБЛИЦЫ С КОЛОНКОЙ "КОЛ-ВО"
+        document.getElementById('table-summary').innerHTML = `
+            <thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Купоны (гряз.)</th><th>Год (гряз.)</th></tr></thead>
+            ${Object.keys(invSummary).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].qty} шт.</td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td style="color:var(--green)">${invSummary[n].paid_gross.toLocaleString()} ₽</td><td>${invSummary[n].proj_gross.toLocaleString()} ₽</td></tr>`).join('')}`;
         
         document.getElementById('table-portfolio').innerHTML = `<thead><tr><th>Дата</th><th>Название</th><th>Сумма</th><th></th></tr></thead>` + 
             db.inv.map(i => `<tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+(i.nkd||0)+(i.fee||0)).toLocaleString()} ₽</td><td><button class="btn-del-hidden" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></td></tr>`).join('');
 
-        // ВЫВОД ИСТОРИИ КУПОНОВ
         document.getElementById('table-payouts-history').innerHTML = db.payouts.map(p => `
             <tr><td>${p.date}</td><td><b>${p.assetName}</b></td><td style="color:var(--green)">${p.amount.toLocaleString()} ₽</td>
             <td><button class="btn-del-hidden" onclick="deleteItem('payouts', ${p.id}, 'payouts')">🗑</button></td></tr>
