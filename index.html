@@ -1,3 +1,18 @@
+// Функция для обработки входа
+function handleLogin() {
+    const emailInput = document.getElementById('email').value;
+    const passwordInput = document.getElementById('password').value;
+
+    // Проверяем данные (замени 'твой_пароль' на нужный)
+    if (emailInput === "lizavensko17@gmail.com" && passwordInput === "123") {
+        // Скрываем экран входа
+        document.getElementById('auth-section').style.display = 'none';
+        // Показываем основной дашборд
+        document.getElementById('dashboard').style.display = 'flex';
+    } else {
+        alert("Неверный логин или пароль!");
+    }
+}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
