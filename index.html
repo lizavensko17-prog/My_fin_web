@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v8.8 Cloud</title>
+    <title>FinanceFlow Pro v8.8 Cloud + Notes</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -21,38 +21,36 @@
         .page.active { display: block; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background-color: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #334155; position: relative; }
+        .card-value { font-size: 24px; font-weight: bold; }
         .section-title { font-size: 12px; color: var(--accent-blue); text-transform: uppercase; margin: 25px 0 10px; font-weight: 800; letter-spacing: 1px; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; color: var(--text-dim); padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #334155; }
         td { padding: 12px; border-bottom: 1px solid #111827; font-size: 14px; }
         .btn-del-hidden { display: none; color: var(--red); background: none; border: none; cursor: pointer; font-size: 18px; margin-left: 10px; }
         .edit-mode .btn-del-hidden { display: inline-block; }
-        .btn-main { background: var(--accent-blue); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .btn-main { background: var(--accent-blue); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 5px; }
         .btn-outline { background: none; border: 1px solid #475569; color: white; padding: 8px 15px; border-radius: 10px; cursor: pointer; }
-        .goal-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; transition: 0.2s; }
-        .btn-plus { background: var(--green); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .btn-minus { background: var(--red); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .goal-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
+        .btn-plus { background: var(--green); }
+        .btn-minus { background: var(--red); }
         .pie-chart { width: 150px; height: 150px; border-radius: 50%; margin: 15px auto; background: #111827; }
         .legend-item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 450px; max-height: 85vh; overflow-y: auto; border: 1px solid #475569; }
+        .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 450px; border: 1px solid #475569; }
         input, select { width: 100%; padding: 12px; background: #0b1120; border: 1px solid #334155; color: white; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; }
         .goal-bar { height: 12px; background: #0f172a; border-radius: 6px; overflow: hidden; margin: 15px 0 8px; }
         .goal-fill { height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa); transition: 0.6s; }
-        .goal-remaining { font-size: 12px; color: var(--text-dim); text-align: right; }
-        .payout-widget { display: flex; flex-direction: column; gap: 8px; }
-        .payout-subtext { font-size: 13px; color: var(--text-dim); border-top: 1px solid #334155; padding-top: 8px; margin-top: 5px; }
         #sync-indicator { font-size: 10px; color: var(--text-dim); position: fixed; bottom: 10px; right: 10px; }
     </style>
 </head>
 <body>
 
-<div id="auth-section" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #0b1120; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
+<div id="auth-section" style="position: fixed; inset: 0; background: #0b1120; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
     <h2 style="color: #2563eb; margin-bottom: 20px;">FinanceFlow Login</h2>
-    <input type="email" id="email" placeholder="Email" style="width: 260px;">
-    <input type="password" id="password" placeholder="Пароль" style="width: 260px;">
-    <button onclick="handleLogin()" class="btn-main" style="width: 260px;">Войти</button>
+    <input type="email" id="email" placeholder="Email" style="width: 280px;">
+    <input type="password" id="password" placeholder="Пароль" style="width: 280px;">
+    <button onclick="handleLogin()" class="btn-main" style="width: 280px;">Войти</button>
 </div>
 
 <div id="dashboard" style="display:none; width: 100%;">
@@ -80,13 +78,8 @@
             <div class="section-title">Инвестиции</div>
             <div class="grid">
                 <div class="card"><div class="card-label">Пассивный доход (чистыми)</div><div class="card-value" id="ov-passive">0 ₽</div></div>
-                <div class="card">
-                    <div class="payout-widget">
-                        <div class="card-label">Всего выплат получено</div>
-                        <div class="card-value" id="ov-total-payouts-gross" style="color:var(--green)">0 ₽</div>
-                        <div class="payout-subtext">После налогов: <span id="ov-total-payouts-net">0 ₽</span></div>
-                    </div>
-                </div>
+                <div class="card"><div class="card-label">Всего получено (грязными)</div><div class="card-value" id="ov-total-payouts-gross" style="color:var(--green)">0 ₽</div></div>
+                <div class="card"><div class="card-label">Всего получено (чистыми)</div><div class="card-value" id="ov-total-payouts-net">0 ₽</div></div>
             </div>
         </div>
 
@@ -94,9 +87,9 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h1>Транзакции</h1>
                 <div style="display: flex; gap: 10px;">
-                    <input type="month" id="filterMonth" style="padding: 10px; margin:0;" onchange="renderApp()">
+                    <input type="month" id="filterMonth" style="margin:0; width: 160px;" onchange="renderApp()">
                     <button class="btn-outline" onclick="toggleEditMode('transactions')">✎ Правка</button>
-                    <button class="btn-main" onclick="openModal('txModal')">+ Операция</button>
+                    <button class="btn-main" style="width: auto;" onclick="openModal('txModal')">+ Операция</button>
                 </div>
             </div>
             <div class="grid" style="grid-template-columns: 1fr 1fr;">
@@ -105,7 +98,7 @@
             </div>
             <div class="card">
                 <table id="table-tx-container">
-                    <thead><tr><th>Дата</th><th>Кат.</th><th>Подкат.</th><th>Сумма</th><th></th></tr></thead>
+                    <thead><tr><th>Дата</th><th>Кат.</th><th>Подкат / Заметка</th><th>Сумма</th><th></th></tr></thead>
                     <tbody id="table-tx"></tbody>
                 </table>
             </div>
@@ -117,17 +110,17 @@
                 <div style="display: flex; gap: 10px;">
                     <button class="btn-outline" onclick="toggleEditMode('investments')">✎ Правка</button>
                     <button class="btn-outline" onclick="openPayoutModal()">💰 Выплаты</button>
-                    <button class="btn-main" onclick="openModal('invModal')">+ Купить</button>
+                    <button class="btn-main" style="width: auto;" onclick="openModal('invModal')">+ Купить</button>
                 </div>
             </div>
-            <div class="card"><div class="card-label">Аналитика портфеля (грязными)</div><table id="table-summary"></table></div>
-            <div class="card" style="margin-top:20px"><div class="card-label">История операций</div><table id="table-portfolio"></table></div>
+            <div class="card"><table id="table-summary"></table></div>
+            <div class="card" style="margin-top:20px"><table id="table-portfolio"></table></div>
         </div>
 
         <div id="goals" class="page">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h1>Цели</h1>
-                <button class="btn-main" onclick="openModal('goalModal')">+ Новая цель</button>
+                <button class="btn-main" style="width: auto;" onclick="openModal('goalModal')">+ Новая</button>
             </div>
             <div id="goals-list" class="grid"></div>
         </div>
@@ -139,61 +132,60 @@
     <select id="txType" onchange="updateCategories()"><option value="expense">Расход</option><option value="income">Доход</option></select>
     <select id="txCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select>
     <select id="txCat" onchange="updateSubCategories()"></select><select id="txSubCat"></select>
-    <input type="number" id="txAmount" placeholder="Сумма"><input type="date" id="txDate">
-    <button class="btn-main" style="width:100%" onclick="saveTransaction()">Сохранить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button>
+    <input type="number" id="txAmount" placeholder="Сумма">
+    <input type="text" id="txNote" placeholder="Заметка">
+    <input type="date" id="txDate">
+    <button class="btn-main" onclick="saveTransaction()">Сохранить</button>
+    <button class="btn-outline" style="width:100%; margin-top:10px" onclick="closeModal('txModal')">Отмена</button>
 </div></div>
 
 <div id="invModal" class="modal"><div class="modal-content">
     <h3>Купить актив</h3>
     <select id="invType" onchange="updateInvUI()"><option value="bond">Облигация</option><option value="stock">Акция</option></select>
-    <input type="text" id="invName" placeholder="Название"><input type="number" id="invQty" placeholder="Кол-во шт."><input type="number" id="invPrice" placeholder="Цена за 1 шт"><input type="number" id="invNkd" placeholder="Общий НКД"><input type="number" id="invFee" placeholder="Комиссия брокера">
-    <div id="bondUI"><input type="number" id="invCoupon" placeholder="Купон на 1 штуку"><select id="invFreq"><option value="2">2 выплаты в год</option><option value="4">4 выплаты в год</option><option value="12">12 выплат (ежемесячно)</option><option value="1">1 выплата в год</option></select></div>
-    <div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Доход на 1 шт в год (грязными)"></div>
+    <input type="text" id="invName" placeholder="Название">
+    <input type="number" id="invQty" placeholder="Кол-во шт.">
+    <input type="number" id="invPrice" placeholder="Цена за шт.">
+    <input type="number" id="invNkd" placeholder="Общий НКД">
+    <input type="number" id="invFee" placeholder="Комиссия">
+    <div id="bondUI"><input type="number" id="invCoupon" placeholder="Купон"><select id="invFreq"><option value="4">4 раза в год</option><option value="2">2 раза</option><option value="12">Ежемесячно</option></select></div>
+    <div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Дивиденды в год"></div>
     <input type="date" id="invBuyDate">
-    <button class="btn-main" style="width:100%" onclick="saveAsset()">Добавить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button>
-</div></div>
-
-<div id="goalModal" class="modal"><div class="modal-content">
-    <h3>Создать цель</h3>
-    <input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option><option value="USD">USD</option></select>
-    <button class="btn-main" style="width:100%" onclick="saveGoal()">Создать</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('goalModal')">Отмена</button>
+    <button class="btn-main" onclick="saveAsset()">Добавить</button>
 </div></div>
 
 <div id="gaModal" class="modal"><div class="modal-content">
     <h3 id="gaTitle">Операция</h3>
     <input type="hidden" id="gaId"><input type="hidden" id="gaType">
     <input type="number" id="gaAmount" placeholder="Сумма">
-    <button class="btn-main" style="width:100%" onclick="processGoalAction()">Подтвердить</button>
-    <button class="btn-outline" style="width:100%; border:none;" onclick="closeModal('gaModal')">Отмена</button>
+    <button class="btn-main" onclick="processGoalAction()">Подтвердить</button>
+</div></div>
+
+<div id="goalModal" class="modal"><div class="modal-content">
+    <h3>Создать цель</h3>
+    <input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select>
+    <button class="btn-main" onclick="saveGoal()">Создать</button>
 </div></div>
 
 <div id="goalHistoryModal" class="modal"><div class="modal-content">
     <h3 id="histGoalName">История</h3>
-    <div id="histContent" style="max-height: 300px; overflow-y: auto;"></div>
-    <hr style="border:0; border-top:1px solid #334155; margin: 20px 0;">
-    <button class="btn-outline" style="color:var(--red); width:100%" onclick="deleteTargetGoal()">🗑 Удалить цель целиком</button>
-    <button class="btn-main" style="width:100%; margin-top:10px" onclick="closeModal('goalHistoryModal')">Закрыть</button>
+    <div id="histContent"></div>
+    <button class="btn-outline" style="color:var(--red); width:100%; margin-top:20px" onclick="deleteTargetGoal()">Удалить цель</button>
+    <button class="btn-main" onclick="closeModal('goalHistoryModal')">Закрыть</button>
 </div></div>
 
 <div id="payoutModal" class="modal"><div class="modal-content">
-    <h3>Регистрация выплаты (грязными)</h3>
-    <select id="payAssetId"></select><input type="number" id="payAmount" placeholder="Сумма выплаты">
-    <button class="btn-main" style="width:100%" onclick="savePayout()">Зачислить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button>
+    <h3>Выплата</h3>
+    <select id="payAssetId"></select><input type="number" id="payAmount" placeholder="Сумма грязными">
+    <button class="btn-main" onclick="savePayout()">Зачислить</button>
 </div></div>
 
-<div id="sync-indicator">Облако: ожидание входа...</div>
+<div id="sync-indicator">Облако: ожидание...</div>
 
 <script>
     const S_URL = 'https://kijosedzdnpjgtrhrvbu.supabase.co';
     const S_KEY = 'sb_publishable_WnFHswDh1LLnoR61Sl2UXg_Iz6IKQc5';
     const _supabase = supabase.createClient(S_URL, S_KEY);
-
-    const TAX_RATE = 0.13; // Стандартный налог 13%
-    const TAX_MULT = 1 - TAX_RATE; // 0.87
+    const TAX_MULT = 0.87;
 
     const catData = {
         income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"], "Подарки": ["Основное"] },
@@ -207,7 +199,7 @@
             "Путешествия": ["виза", "такси", "путешествия", "карманные"]
         }
     };
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
     let db = { tx: [], inv: [], payouts: [], goals: [] };
     let activeGoalId = null;
@@ -249,6 +241,12 @@
     function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='txModal') updateCategories(); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
+    function updateInvUI() {
+        const type = document.getElementById('invType').value;
+        document.getElementById('bondUI').style.display = type === 'bond' ? 'block' : 'none';
+        document.getElementById('stockUI').style.display = type === 'stock' ? 'block' : 'none';
+    }
+
     function toggleEditMode(page) {
         if(page === 'transactions') document.getElementById('table-tx-container').classList.toggle('edit-mode');
         if(page === 'investments') {
@@ -258,9 +256,19 @@
     }
 
     async function saveTransaction() {
-        const item = { id: Date.now(), type: document.getElementById('txType').value, cur: document.getElementById('txCur').value, cat: document.getElementById('txCat').value, sub: document.getElementById('txSubCat').value, amt: Number(document.getElementById('txAmount').value), date: document.getElementById('txDate').value };
+        const item = { 
+            id: Date.now(), 
+            type: document.getElementById('txType').value, 
+            cur: document.getElementById('txCur').value, 
+            cat: document.getElementById('txCat').value, 
+            sub: document.getElementById('txSubCat').value, 
+            amt: Number(document.getElementById('txAmount').value), 
+            note: document.getElementById('txNote').value,
+            date: document.getElementById('txDate').value 
+        };
         db.tx.push(item);
         await _supabase.from('transactions').upsert([item]);
+        document.getElementById('txNote').value = '';
         renderApp(); closeModal('txModal');
     }
 
@@ -274,8 +282,7 @@
     }
 
     async function savePayout() {
-        const amt = Number(document.getElementById('payAmount').value);
-        const item = { id: Date.now(), assetName: document.getElementById('payAssetId').value, amount: amt, date: new Date().toLocaleDateString() };
+        const item = { id: Date.now(), assetName: document.getElementById('payAssetId').value, amount: Number(document.getElementById('payAmount').value), date: new Date().toLocaleDateString() };
         db.payouts.push(item);
         await _supabase.from('payouts').upsert([item]);
         renderApp(); closeModal('payoutModal');
@@ -311,7 +318,7 @@
         const goal = db.goals.find(g => g.id === id);
         document.getElementById('histGoalName').innerText = goal.name;
         document.getElementById('histContent').innerHTML = (goal.logs || []).map((l, idx) => `
-            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #334155; font-size:13px">
+            <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #334155;">
                 <span>${l.date} | ${l.type==='add'?'+':'-'}${l.amt} ${goal.cur}</span>
                 <button style="color:var(--red); background:none; border:none; cursor:pointer" onclick="deleteGoalLog(${idx})">Удалить</button>
             </div>
@@ -329,10 +336,9 @@
     }
 
     async function deleteTargetGoal() {
-        if(confirm('Удалить цель полностью?')) {
-            const id = activeGoalId;
-            db.goals = db.goals.filter(g => g.id !== id);
-            await _supabase.from('goals').delete().eq('id', id);
+        if(confirm('Удалить цель?')) {
+            await _supabase.from('goals').delete().eq('id', activeGoalId);
+            db.goals = db.goals.filter(g => g.id !== activeGoalId);
             renderApp(); closeModal('goalHistoryModal');
         }
     }
@@ -383,7 +389,19 @@
         document.getElementById('ov-inc-byn').innerText = iB + ' BYN'; document.getElementById('ov-exp-byn').innerText = eB + ' BYN';
         document.getElementById('ov-inc-rub').innerText = iR + ' ₽'; document.getElementById('ov-exp-rub').innerText = eR + ' ₽';
 
-        document.getElementById('table-tx').innerHTML = curTx.map(t => `<tr><td>${t.date.slice(8)}</td><td>${t.cat}</td><td>${t.sub}</td><td style="color:${t.type==='income'?'#10b981':'#ef4444'}">${t.amt} ${t.cur}</td><td><button class="btn-del-hidden" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></td></tr>`).join('');
+        document.getElementById('table-tx').innerHTML = curTx.map(t => `
+            <tr>
+                <td>${t.date.slice(8)}</td>
+                <td>${t.cat}</td>
+                <td>
+                    <b>${t.sub}</b><br>
+                    <small style="color:var(--text-dim)">${t.note || ''}</small>
+                </td>
+                <td style="color:${t.type==='income'?'#10b981':'#ef4444'}">${t.amt} ${t.cur}</td>
+                <td><button class="btn-del-hidden" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></td>
+            </tr>
+        `).join('');
+
         drawChart('expense', curTx, 'chart-exp', 'legend-exp');
         drawChart('income', curTx, 'chart-inc', 'legend-inc');
 
@@ -401,24 +419,21 @@
         document.getElementById('table-portfolio').innerHTML = `<thead><tr><th>Дата</th><th>Название</th><th>Сумма</th><th></th></tr></thead>` + 
             db.inv.map(i => `<tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+i.nkd+i.fee).toLocaleString()} ₽</td><td><button class="btn-del-hidden" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></td></tr>`).join('');
 
-        let totalProjGross = 0; Object.values(invSummary).forEach(s => totalProjGross += s.proj_gross);
-        let totalPaidGross = 0; db.payouts.forEach(p => totalPaidGross += p.amount);
-        
-        // ВОССТАНОВЛЕННЫЕ РАСЧЕТЫ
-        document.getElementById('ov-passive').innerText = (totalProjGross * TAX_MULT).toLocaleString() + ' ₽';
-        document.getElementById('ov-total-payouts-gross').innerText = totalPaidGross.toLocaleString() + ' ₽';
-        document.getElementById('ov-total-payouts-net').innerText = (totalPaidGross * TAX_MULT).toLocaleString() + ' ₽';
+        let tPG = 0; Object.values(invSummary).forEach(s => tPG += s.proj_gross);
+        let tPaG = 0; db.payouts.forEach(p => tPaG += p.amount);
+        document.getElementById('ov-passive').innerText = (tPG * TAX_MULT).toLocaleString() + ' ₽';
+        document.getElementById('ov-total-payouts-gross').innerText = tPaG.toLocaleString() + ' ₽';
+        document.getElementById('ov-total-payouts-net').innerText = (tPaG * TAX_MULT).toLocaleString() + ' ₽';
 
         document.getElementById('goals-list').innerHTML = db.goals.map(g => {
             const perc = Math.min((g.saved/g.target)*100, 100);
             return `<div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start">
+                <div style="display:flex; justify-content:space-between">
                     <div><b>${g.name}</b><br><small>${g.target} ${g.cur}</small></div>
-                    <button class="btn-outline" style="font-size:10px; padding:5px" onclick="openGoalHistory(${g.id})">История</button>
+                    <button class="btn-outline" style="font-size:10px" onclick="openGoalHistory(${g.id})">История</button>
                 </div>
                 <div class="goal-bar"><div class="goal-fill" style="width:${perc}%"></div></div>
-                <div class="goal-remaining">Осталось: ${(g.target - g.saved).toLocaleString()} ${g.cur}</div>
-                <div style="display:flex; justify-content:center; gap:30px; margin-top:15px">
+                <div style="display:flex; justify-content:center; gap:20px; margin-top:10px">
                     <button class="goal-btn btn-minus" onclick="goalOp(${g.id},'sub','${g.name}')">−</button>
                     <button class="goal-btn btn-plus" onclick="goalOp(${g.id},'add','${g.name}')">+</button>
                 </div>
@@ -428,7 +443,6 @@
 
     document.getElementById('filterMonth').value = new Date().toISOString().slice(0,7);
     document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
-    document.getElementById('invBuyDate').value = new Date().toISOString().slice(0,10);
 </script>
 </body>
 </html>
