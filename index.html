@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v11.0</title>
+    <title>FinanceFlow Pro v11.1</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -481,7 +481,6 @@
     
     let db = { tx: [], inv: [], payouts: [], goals: [] };
 
-    // КАТЕГОРИИ (ВОССТАНОВЛЕНЫ)
     const catData = { 
         income: { 
             "Репетитор RUB": ["Основное", "Доп. занятия", "Интенсив"], 
@@ -544,39 +543,34 @@
         `).join('');
         renderCurrencyCharts(currentTx);
 
-        // ИНВЕСТИЦИИ: Расчеты и Таблицы
+        // ИНВЕСТИЦИИ
         const { port, totalSalesProfit } = calculateInvestmentData();
         let totalGross = 0, totalProjGross = 0;
         db.payouts.forEach(p => totalGross += p.amount);
         Object.values(port).forEach(s => totalProjGross += s.proj_gross);
         const totalNet = totalGross * (1 - TAX_RATE);
 
-        // Обзор виджеты
         document.getElementById('ov-pass-gross').innerText = totalProjGross.toLocaleString() + ' ₽';
         document.getElementById('ov-earned-gross').innerText = totalGross.toLocaleString() + ' ₽';
         document.getElementById('ov-earned-net').innerText = totalNet.toLocaleString() + ' ₽';
 
-        // Инвестиции виджеты
         document.getElementById('inv-widget-passive').innerText = totalProjGross.toLocaleString() + ' ₽';
         document.getElementById('inv-widget-gross').innerText = totalGross.toLocaleString() + ' ₽';
         document.getElementById('inv-widget-net').innerText = totalNet.toLocaleString() + ' ₽';
         document.getElementById('inv-widget-sales-profit').innerText = totalSalesProfit.toLocaleString() + ' ₽';
         document.getElementById('inv-widget-sales-profit').style.color = totalSalesProfit >= 0 ? 'var(--green)' : 'var(--red)';
 
-        // Состояние портфеля
         document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Доход/год</th><th>Выплачено</th></tr></thead>` + 
             Object.keys(port).filter(n => port[n].qty > 0).map(n => `
             <tr><td><b>${n}</b></td><td>${port[n].qty} шт.</td><td>${port[n].cost.toLocaleString()} ₽</td>
             <td style="color:var(--yellow)">${port[n].proj_gross.toLocaleString()} ₽</td><td style="color:var(--green)">+${port[n].real_earned.toLocaleString()} ₽</td></tr>
             `).join('');
 
-        // Таблица ПОКУПОК
         document.getElementById('table-portfolio-buys').innerHTML = db.inv.filter(i => i.qty > 0).sort((a,b) => b.id - a.id).map(i => `
             <tr><td>${i.date}</td><td><b>${i.name}</b></td><td>${i.qty}</td><td>${i.price} ₽</td><td>${(i.qty * i.price + (i.nkd||0) + (i.fee||0)).toLocaleString()} ₽</td>
             <td><div class="btn-edit-actions"><button class="btn-action btn-edit" onclick="editAsset(${i.id})">✎</button><button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></div></td></tr>
         `).join('');
 
-        // Таблица ПРОДАЖ
         document.getElementById('table-portfolio-sells').innerHTML = db.inv.filter(i => i.qty < 0).sort((a,b) => b.id - a.id).map(i => {
             const profit = calculateSaleProfit(i);
             return `
@@ -586,57 +580,39 @@
             <td><div class="btn-edit-actions"><button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></div></td></tr>`;
         }).join('');
 
-        // История выплат
         document.getElementById('table-payouts').innerHTML = db.payouts.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).map(p => `
             <tr><td>${p.date}</td><td><b>${p.assetName}</b></td><td style="color:var(--green)">${p.amount.toLocaleString()} ₽</td>
             <td><div class="btn-edit-actions"><button class="btn-action btn-del" onclick="deleteItem('payouts', ${p.id}, 'payouts')">🗑</button></div></td></tr>
         `).join('');
 
-        // ЦЕЛИ
+        // ЦЕЛИ (ИСПРАВЛЕНО: Добавлен подсчет сколько осталось)
         document.getElementById('goals-list').innerHTML = db.goals.map(g => {
             const perc = Math.min((g.saved / g.target) * 100, 100);
-            return `<div class="card"><b>${g.name}</b><br><small>Цель: ${g.target.toLocaleString()} ${g.cur}</small>
+            const left = Math.max(g.target - g.saved, 0); // Сколько осталось копить
+            return `<div class="card"><b>${g.name}</b><br>
+                <small>Цель: ${g.target.toLocaleString()} ${g.cur}</small><br>
+                <small style="color:var(--text-dim)">Осталось: ${left.toLocaleString()} ${g.cur}</small>
                 <div style="height:8px; background:#0f172a; border-radius:4px; margin:12px 0; overflow:hidden;"><div style="height:100%; background:var(--accent-blue); width:${perc}%"></div></div>
                 <div style="display:flex; justify-content:center; gap:10px;"><button class="goal-btn" style="background:var(--red)" onclick="goalOp(${g.id},'sub','${g.name}')">−</button><button class="goal-btn" style="background:var(--green)" onclick="goalOp(${g.id},'add','${g.name}')">+</button></div></div>`;
         }).join('');
     }
 
-    // ЛОГИКА РАСЧЕТА ИНВЕСТИЦИЙ
+    // ИНВЕСТИЦИОННАЯ ЛОГИКА
     function calculateInvestmentData() {
-        const port = {};
-        let totalSalesProfit = 0;
-        
-        // Сортируем по дате, чтобы корректно считать среднюю цену для продаж
+        const port = {}; let totalSalesProfit = 0;
         const history = [...db.inv].sort((a, b) => new Date(a.date) - new Date(b.date));
-
         history.forEach(i => {
             if (!port[i.name]) port[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0, buyTotalQty: 0, buyTotalCost: 0 };
-            
             if (i.qty > 0) {
                 const fullCost = (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0);
-                port[i.name].cost += fullCost;
-                port[i.name].qty += i.qty;
-                port[i.name].proj_gross += (i.qty * (i.yield || 0));
-                
-                // Для расчета прибыли от продаж запоминаем историю покупок
-                port[i.name].buyTotalQty += i.qty;
-                port[i.name].buyTotalCost += fullCost;
+                port[i.name].cost += fullCost; port[i.name].qty += i.qty; port[i.name].proj_gross += (i.qty * (i.yield || 0));
+                port[i.name].buyTotalQty += i.qty; port[i.name].buyTotalCost += fullCost;
             } else {
-                const absQty = Math.abs(i.qty);
-                // Считаем среднюю цену покупки на момент продажи
-                const avgBuyPrice = port[i.name].buyTotalCost / port[i.name].buyTotalQty;
-                const saleRevenue = absQty * i.price;
-                const profit = saleRevenue - (absQty * avgBuyPrice);
-                
-                totalSalesProfit += profit;
-                
-                // Уменьшаем текущие показатели
-                port[i.name].cost -= (absQty * avgBuyPrice);
-                port[i.name].qty -= absQty;
-                port[i.name].proj_gross -= (absQty * (i.yield || 0));
+                const absQty = Math.abs(i.qty); const avgBuyPrice = port[i.name].buyTotalCost / port[i.name].buyTotalQty;
+                const profit = (absQty * i.price) - (absQty * avgBuyPrice);
+                totalSalesProfit += profit; port[i.name].cost -= (absQty * avgBuyPrice); port[i.name].qty -= absQty; port[i.name].proj_gross -= (absQty * (i.yield || 0));
             }
         });
-
         db.payouts.forEach(p => { if (port[p.assetName]) port[p.assetName].real_earned += p.amount; });
         return { port, totalSalesProfit };
     }
@@ -658,7 +634,6 @@
         document.getElementById('btn-show-sells').classList.toggle('active', type === 'sell');
     }
 
-    // ОСТАЛЬНЫЕ ФУНКЦИИ (БЕЗ ИЗМЕНЕНИЙ)
     function renderCurrencyCharts(txs) {
         ['BYN', 'RUB'].forEach(cur => { 
             ['income', 'expense'].forEach(type => {
@@ -674,6 +649,7 @@
         });
     }
 
+    // ХЕНДЛЕРЫ
     function openTxModal() { document.getElementById('txModalTitle').innerText = "Новая операция"; document.getElementById('editTxId').value = ""; document.getElementById('txDate').value = new Date().toISOString().slice(0,10); updateCategories(); openModal('txModal'); }
     function editTransaction(id) {
         const t = db.tx.find(x => x.id === id);
@@ -684,15 +660,13 @@
         const it = { id: eid ? Number(eid) : Date.now(), type: document.getElementById('txType').value, cur: document.getElementById('txCur').value, cat: document.getElementById('txCat').value, sub: document.getElementById('txSubCat').value, amt: Number(document.getElementById('txAmount').value), date: document.getElementById('txDate').value }; 
         await _supabase.from('transactions').upsert([it]); loadFromCloud(); closeModal('txModal'); 
     }
-
     function openAddAssetModal() { document.getElementById('invModalTitle').innerText = "Купить актив"; document.getElementById('editAssetId').value = ""; document.getElementById('invBuyDate').value = new Date().toISOString().slice(0,10); openModal('invModal'); }
     function editAsset(id) { 
         const a = db.inv.find(i => i.id === id); 
         if (a) { document.getElementById('invModalTitle').innerText = "Редактировать актив"; document.getElementById('editAssetId').value = a.id; document.getElementById('invName').value = a.name; document.getElementById('invQty').value = a.qty; document.getElementById('invPrice').value = a.price; document.getElementById('invBuyDate').value = a.date; openModal('invModal'); } 
     }
     async function saveAsset() { 
-        const eid = document.getElementById('editAssetId').value;
-        const type = document.getElementById('invType').value; 
+        const eid = document.getElementById('editAssetId').value; const type = document.getElementById('invType').value; 
         const it = { id: eid ? Number(eid) : Date.now(), name: document.getElementById('invName').value, type: type, qty: Number(document.getElementById('invQty').value), price: Number(document.getElementById('invPrice').value), nkd: Number(document.getElementById('invNkd').value) || 0, fee: Number(document.getElementById('invFee').value) || 0, yield: type === 'bond' ? Number(document.getElementById('invCoupon').value) * Number(document.getElementById('invFreq').value) : Number(document.getElementById('invDiv').value), date: document.getElementById('invBuyDate').value }; 
         await _supabase.from('investments').upsert([it]); loadFromCloud(); closeModal('invModal'); 
     }
