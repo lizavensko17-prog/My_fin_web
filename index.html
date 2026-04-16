@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v10.8.1</title>
+    <title>FinanceFlow Pro v10.8.2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -37,9 +37,9 @@
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 420px; border: 1px solid #475569; }
         input, select { width: 100%; padding: 12px; background: #0b1120; border: 1px solid #334155; color: white; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        .pie-chart { width: 120px; height: 120px; border-radius: 50%; margin: 10px auto; background: #111827; }
+        .pie-chart { width: 100px; height: 100px; border-radius: 50%; margin: 10px auto; background: #111827; }
         .goal-btn { width: 35px; height: 35px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; }
-        #sync-indicator { font-size: 10px; color: var(--text-dim); position: fixed; bottom: 10px; right: 10px; }
+        .legend-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -53,7 +53,7 @@
 
 <div id="dashboard" style="display:none; width: 100%;">
     <div class="sidebar">
-        <div class="logo">FINANCE FLOW 10.8</div>
+        <div class="logo">FINANCE FLOW 10.8.2</div>
         <div class="nav-item active" onclick="showPage('overview', this)">Обзор</div>
         <div class="nav-item" onclick="showPage('transactions', this)">Транзакции</div>
         <div class="nav-item" onclick="showPage('investments', this)">Инвестиции</div>
@@ -76,8 +76,8 @@
             <div class="section-title">Инвестиции</div>
             <div class="grid">
                 <div class="card"><div class="card-label">Пассивный доход (чист)</div><div class="card-value" id="ov-passive">0 ₽</div></div>
-                <div class="card"><div class="card-label">Фикс. прибыль</div><div class="card-value" id="ov-realized-profit" style="color:var(--yellow)">0 ₽</div></div>
-                <div class="card"><div class="card-label">Всего выплат (чист)</div><div class="card-value" id="ov-total-payouts-net">0 ₽</div></div>
+                <div class="card"><div class="card-label" style="color:var(--green)">Всего получено (гряз)</div><div class="card-value" id="ov-total-payouts-gross" style="color:var(--green)">0 ₽</div></div>
+                <div class="card"><div class="card-label">Всего получено (чист)</div><div class="card-value" id="ov-total-payouts-net">0 ₽</div></div>
             </div>
         </div>
 
@@ -90,9 +90,12 @@
                     <button class="btn-main" style="width: auto;" onclick="openModal('txModal')">+ Операция</button>
                 </div>
             </div>
-            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="card"><div class="card-label">Доходы (%)</div><div id="chart-inc" class="pie-chart"></div><div id="legend-inc"></div></div>
-                <div class="card"><div class="card-label">Расходы (%)</div><div id="chart-exp" class="pie-chart"></div><div id="legend-exp"></div></div>
+            <div class="section-title">Аналитика по валютам</div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+                <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">BYN Доход</div><div id="chart-inc-byn" class="pie-chart"></div><div id="legend-inc-byn"></div></div>
+                <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">BYN Расход</div><div id="chart-exp-byn" class="pie-chart"></div><div id="legend-exp-byn"></div></div>
+                <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">RUB Доход</div><div id="chart-inc-rub" class="pie-chart"></div><div id="legend-inc-rub"></div></div>
+                <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">RUB Расход</div><div id="chart-exp-rub" class="pie-chart"></div><div id="legend-exp-rub"></div></div>
             </div>
             <div class="card" style="padding:0; overflow:hidden;"><table id="table-tx-container"><thead><tr><th>Дата</th><th>Кат.</th><th>Подкат</th><th>Сумма</th><th></th></tr></thead><tbody id="table-tx"></tbody></table></div>
         </div>
@@ -107,11 +110,9 @@
                     <button class="btn-main" style="width: auto;" onclick="openAddAssetModal()">+ Купить</button>
                 </div>
             </div>
-            <div class="card" style="margin-bottom: 20px;"><table id="table-summary"></table></div>
+            <div class="card"><table id="table-summary"></table></div>
             <div class="section-title">История сделок</div>
             <div class="card" style="padding:0; overflow:hidden;"><table id="table-portfolio-container"><thead><tr><th>Дата</th><th>Актив</th><th>Сумма</th><th>Действия</th></tr></thead><tbody id="table-portfolio"></tbody></table></div>
-            <div class="section-title">История выплат</div>
-            <div class="card" style="padding:0; overflow:hidden;"><table id="table-payouts-container"><thead><tr><th>Дата</th><th>Актив</th><th>Сумма (чист)</th></tr></thead><tbody id="table-payouts"></tbody></table></div>
         </div>
 
         <div id="goals" class="page">
@@ -125,7 +126,7 @@
 <div id="payoutModal" class="modal"><div class="modal-content"><h3>Зачислить выплату</h3><select id="payAssetId"></select><input type="number" id="payAmount" placeholder="Сумма (грязными)"><input type="date" id="payDate"><button class="btn-main" onclick="savePayout()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button></div></div>
 <div id="sellModal" class="modal"><div class="modal-content"><h3>Продать актив</h3><select id="sellAssetId" onchange="updateSellMax()"></select><div id="sellMaxInfo" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Доступно: 0 шт.</div><input type="number" id="sellQty" placeholder="Кол-во на продажу"><input type="number" id="sellPrice" placeholder="Цена продажи (за 1 шт.)"><input type="date" id="sellDate"><button class="btn-main" style="background: var(--red);" onclick="processSale()">Зафиксировать продажу</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('sellModal')">Отмена</button></div></div>
 <div id="txModal" class="modal"><div class="modal-content"><h3>Новая операция</h3><select id="txType" onchange="updateCategories()"><option value="expense">Расход</option><option value="income">Доход</option></select><select id="txCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><select id="txCat" onchange="updateSubCategories()"></select><select id="txSubCat"></select><input type="number" id="txAmount" placeholder="Сумма"><input type="text" id="txNote" placeholder="Заметка"><input type="date" id="txDate"><button class="btn-main" onclick="saveTransaction()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button></div></div>
-<div id="goalModal" class="modal"><div class="modal-content"><h3>Создать цель</h3><input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><button class="btn-main" onclick="saveGoal()">Создать</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('goalModal')">Отмена</button></div></div>
+<div id="goalModal" class="modal"><div class="modal-content"><h3>Создать цель</h3><input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><button class="btn-main" onclick="saveGoal()">Создать</button></div></div>
 <div id="gaModal" class="modal"><div class="modal-content"><h3 id="gaTitle">Операция</h3><input type="hidden" id="gaId"><input type="hidden" id="gaType"><input type="number" id="gaAmount" placeholder="Сумма"><button class="btn-main" onclick="processGoalAction()">Подтвердить</button></div></div>
 
 <script>
@@ -141,200 +142,95 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-        if (error) alert("Ошибка: " + error.message);
-        else {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
-            loadFromCloud();
-        }
+        if (!error) { document.getElementById('auth-section').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; loadFromCloud(); }
     }
 
     async function loadFromCloud() {
         const tables = ['transactions', 'investments', 'payouts', 'goals', 'sales'];
         for (let t of tables) {
-            const { data, error } = await _supabase.from(t).select('*');
-            if (!error && data) {
-                const key = t === 'transactions' ? 'tx' : (t === 'investments' ? 'inv' : t);
-                db[key] = data;
-            }
+            const { data } = await _supabase.from(t).select('*');
+            if (data) db[t === 'transactions' ? 'tx' : (t === 'investments' ? 'inv' : t)] = data;
         }
         renderApp();
     }
 
     function renderApp() {
         const m = document.getElementById('filterMonth').value;
-        const curTx = db.tx.filter(t => t.date && t.date.startsWith(m)).sort((a,b) => b.id - a.id);
+        const curTx = db.tx.filter(t => t.date && t.date.startsWith(m));
         
-        // Виджеты BYN/RUB
         let iB = 0, eB = 0, iR = 0, eR = 0;
-        curTx.forEach(t => { 
-            if(t.cur==='BYN') { t.type==='income'?iB+=t.amt:eB+=t.amt; } 
-            else { t.type==='income'?iR+=t.amt:eR+=t.amt; } 
-        });
-        document.getElementById('ov-inc-byn').innerText = iB + ' BYN'; 
-        document.getElementById('ov-exp-byn').innerText = eB + ' BYN';
-        document.getElementById('ov-inc-rub').innerText = iR + ' ₽'; 
-        document.getElementById('ov-exp-rub').innerText = eR + ' ₽';
+        curTx.forEach(t => { if(t.cur==='BYN') t.type==='income'?iB+=t.amt:eB+=t.amt; else t.type==='income'?iR+=t.amt:eR+=t.amt; });
+        document.getElementById('ov-inc-byn').innerText = iB + ' BYN'; document.getElementById('ov-exp-byn').innerText = eB + ' BYN';
+        document.getElementById('ov-inc-rub').innerText = iR + ' ₽'; document.getElementById('ov-exp-rub').innerText = eR + ' ₽';
 
-        // Таблица транзакций
-        document.getElementById('table-tx').innerHTML = curTx.map(t => `
-            <tr><td>${t.date.slice(8)}</td><td>${t.cat}</td><td><b>${t.sub}</b></td>
-            <td style="color:${t.type==='income'?'#10b981':'#ef4444'}">${t.amt} ${t.cur}</td>
-            <td><div class="btn-edit-actions" id="table-tx-container"><button class="btn-action btn-del" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></div></td></tr>
-        `).join('');
+        document.getElementById('table-tx').innerHTML = curTx.sort((a,b)=>b.id-a.id).map(t => `<tr><td>${t.date.slice(8)}</td><td>${t.cat}</td><td><b>${t.sub}</b></td><td style="color:${t.type==='income'?'#10b981':'#ef4444'}">${t.amt} ${t.cur}</td><td><div class="btn-edit-actions" id="table-tx-container"><button class="btn-action btn-del" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></div></td></tr>`).join('');
 
-        // Графики
-        renderCharts(curTx);
+        renderCurrencyCharts(curTx);
 
-        // Инвестиции
         const invSummary = getActivePortfolio();
-        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Прибыль</th></tr></thead>` + 
-        Object.keys(invSummary).filter(n => invSummary[n].qty > 0).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].qty} шт.</td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td style="color:var(--green)">+${invSummary[n].real_earned.toLocaleString()} ₽</td></tr>`).join('');
+        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Доход/год</th><th>Прибыль</th></tr></thead>` + 
+        Object.keys(invSummary).filter(n => invSummary[n].qty > 0).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].qty} шт.</td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td style="color:var(--yellow)">${invSummary[n].proj_gross.toLocaleString()} ₽</td><td style="color:var(--green)">+${invSummary[n].real_earned.toLocaleString()} ₽</td></tr>`).join('');
 
-        const sortedInv = db.inv.slice().sort((a,b) => b.id - a.id);
-        document.getElementById('table-portfolio').innerHTML = sortedInv.map(i => `
-            <tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+(i.nkd||0)+(i.fee||0)).toLocaleString()} ₽</td>
-            <td><div class="btn-edit-actions" id="table-portfolio-container">
-                <button class="btn-action btn-edit" onclick="editAsset(${i.id})">✎</button>
-                <button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button>
-            </div></td></tr>
-        `).join('');
+        document.getElementById('table-portfolio').innerHTML = db.inv.slice().sort((a,b)=>b.id-a.id).map(i => `<tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+(i.nkd||0)+(i.fee||0)).toLocaleString()} ₽</td><td><div class="btn-edit-actions" id="table-portfolio-container"><button class="btn-action btn-edit" onclick="editAsset(${i.id})">✎</button><button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></div></td></tr>`).join('');
 
-        document.getElementById('table-payouts').innerHTML = db.payouts.slice().sort((a,b) => b.id - a.id).map(p => `<tr><td>${p.date}</td><td>${p.assetName}</td><td>${(p.amount*TAX_MULT).toLocaleString()} ₽</td></tr>`).join('');
-
-        // Цели с кнопками + / -
-        document.getElementById('goals-list').innerHTML = db.goals.map(g => {
-            const perc = Math.min((g.saved/g.target)*100, 100);
-            return `<div class="card"><b>${g.name}</b><br><small>Осталось: <b style="color:var(--yellow)">${Math.max(g.target - g.saved, 0).toLocaleString()} ${g.cur}</b></small><div style="height:10px; background:#0f172a; border-radius:5px; margin:15px 0 10px; overflow:hidden;"><div style="height:100%; background:var(--accent-blue); width:${perc}%"></div></div><div style="display:flex; justify-content:center; gap:15px;"><button class="goal-btn" style="background:var(--red)" onclick="goalOp(${g.id},'sub','${g.name}')">−</button><button class="goal-btn" style="background:var(--green)" onclick="goalOp(${g.id},'add','${g.name}')">+</button></div></div>`;
-        }).join('');
-
-        // Обзорные виджеты инвеста
-        let realizedProfit = 0; db.sales.forEach(s => realizedProfit += s.profit);
-        let tPG = 0; Object.values(invSummary).forEach(s => tPG += s.proj_gross);
         let tPaG = 0; db.payouts.forEach(p => tPaG += p.amount);
+        let tPG = 0; Object.values(invSummary).forEach(s => tPG += s.proj_gross);
         document.getElementById('ov-passive').innerText = (tPG * TAX_MULT).toLocaleString() + ' ₽';
-        document.getElementById('ov-realized-profit').innerText = realizedProfit.toLocaleString() + ' ₽';
+        document.getElementById('ov-total-payouts-gross').innerText = tPaG.toLocaleString() + ' ₽';
         document.getElementById('ov-total-payouts-net').innerText = (tPaG * TAX_MULT).toLocaleString() + ' ₽';
+
+        document.getElementById('goals-list').innerHTML = db.goals.map(g => `<div class="card"><b>${g.name}</b><br><small>Цель: ${g.target} ${g.cur}</small><div style="display:flex; justify-content:center; gap:10px; margin-top:10px"><button class="goal-btn" style="background:var(--red)" onclick="goalOp(${g.id},'sub','${g.name}')">−</button><button class="goal-btn" style="background:var(--green)" onclick="goalOp(${g.id},'add','${g.name}')">+</button></div></div>`).join('');
     }
 
-    function renderCharts(txs) {
-        ['income', 'expense'].forEach(type => {
-            const totals = {}; txs.filter(t => t.type === type).forEach(t => totals[t.cat] = (totals[t.cat] || 0) + t.amt);
-            const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
-            const sum = sorted.reduce((a,b) => a + b[1], 0);
-            let current = 0;
-            const gradients = sorted.map((c, i) => {
-                const start = (current/sum)*100; current += c[1]; const end = (current/sum)*100;
-                return `${colors[i % colors.length]} ${start}% ${end}%`;
-            }).join(', ');
-            document.getElementById(`chart-${type === 'income' ? 'inc' : 'exp'}`).style.background = sum ? `conic-gradient(${gradients})` : '#111827';
-            document.getElementById(`legend-${type === 'income' ? 'inc' : 'exp'}`).innerHTML = sorted.map((c, i) => `<div class="legend-item"><span><i style="display:inline-block; width:8px; height:8px; background:${colors[i % colors.length]}; border-radius:50%; margin-right:5px;"></i>${c[0]}</span><b>${((c[1]/sum)*100).toFixed(1)}%</b></div>`).join('');
+    function renderCurrencyCharts(txs) {
+        ['BYN', 'RUB'].forEach(cur => {
+            ['income', 'expense'].forEach(type => {
+                const subTxs = txs.filter(t => t.cur === cur && t.type === type);
+                const totals = {}; subTxs.forEach(t => totals[t.cat] = (totals[t.cat] || 0) + t.amt);
+                const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]);
+                const sum = sorted.reduce((a,b) => a + b[1], 0);
+                let current = 0;
+                const grad = sorted.map((c, i) => { const s = (current/sum)*100; current += c[1]; const e = (current/sum)*100; return `${colors[i % colors.length]} ${s}% ${e}%`; }).join(', ');
+                const idSuffix = `${type === 'income' ? 'inc' : 'exp'}-${cur.toLowerCase()}`;
+                document.getElementById(`chart-${idSuffix}`).style.background = sum ? `conic-gradient(${grad})` : '#111827';
+                document.getElementById(`legend-${idSuffix}`).innerHTML = sorted.map((c, i) => `<div class="legend-item"><span>${c[0]}</span><b>${((c[1]/sum)*100).toFixed(0)}%</b></div>`).join('');
+            });
         });
     }
 
     function getActivePortfolio() {
-        const summary = {};
-        db.inv.forEach(i => {
-            if(!summary[i.name]) summary[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0 };
-            summary[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0);
-            summary[i.name].qty += i.qty;
-            summary[i.name].proj_gross += (i.qty * i.yield);
-        });
-        db.payouts.forEach(p => { if(summary[p.assetName]) summary[p.assetName].real_earned += p.amount; });
-        db.sales.forEach(s => {
-            if(summary[s.assetName]) {
-                const avg = summary[s.assetName].cost / summary[s.assetName].qty;
-                summary[s.assetName].qty -= s.qty;
-                summary[s.assetName].cost -= (s.qty * avg);
-            }
-        });
-        return summary;
+        const s = {};
+        db.inv.forEach(i => { if(!s[i.name]) s[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0 }; s[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0); s[i.name].qty += i.qty; s[i.name].proj_gross += (i.qty * i.yield); });
+        db.payouts.forEach(p => { if(s[p.assetName]) s[p.assetName].real_earned += p.amount; });
+        return s;
     }
 
-    // ИНВЕСТ: ПРАВКА
-    function openAddAssetModal() {
-        document.getElementById('invModalTitle').innerText = "Купить актив";
-        document.getElementById('editAssetId').value = "";
-        document.getElementById('invName').value = ""; document.getElementById('invQty').value = "";
-        document.getElementById('invPrice').value = ""; document.getElementById('invNkd').value = "0";
-        document.getElementById('invFee').value = "0"; openModal('invModal');
-    }
     function editAsset(id) {
         const a = db.inv.find(i => i.id === id); if (!a) return;
         document.getElementById('invModalTitle').innerText = "Редактировать";
-        document.getElementById('editAssetId').value = a.id; document.getElementById('invType').value = a.type;
-        document.getElementById('invName').value = a.name; document.getElementById('invQty').value = a.qty;
-        document.getElementById('invPrice').value = a.price; document.getElementById('invNkd').value = a.nkd || 0;
-        document.getElementById('invFee').value = a.fee || 0; document.getElementById('invBuyDate').value = a.date;
+        document.getElementById('editAssetId').value = a.id; document.getElementById('invName').value = a.name;
+        document.getElementById('invQty').value = a.qty; document.getElementById('invPrice').value = a.price;
         updateInvUI(); openModal('invModal');
     }
+
     async function saveAsset() {
         const editId = document.getElementById('editAssetId').value;
         const type = document.getElementById('invType').value;
-        let y = (type === 'bond') ? Number(document.getElementById('invCoupon').value) * Number(document.getElementById('invFreq').value) : (type === 'stock' ? Number(document.getElementById('invDiv').value) : 0);
-        const item = { id: editId ? Number(editId) : Date.now(), name: document.getElementById('invName').value, type, qty: Number(document.getElementById('invQty').value), price: Number(document.getElementById('invPrice').value), nkd: Number(document.getElementById('invNkd').value), fee: Number(document.getElementById('invFee').value), yield: y, date: document.getElementById('invBuyDate').value };
-        if(editId) { const idx = db.inv.findIndex(i => i.id === Number(editId)); db.inv[idx] = item; } else { db.inv.push(item); }
-        await _supabase.from('investments').upsert([item]); renderApp(); closeModal('invModal');
+        const y = (type === 'bond') ? Number(document.getElementById('invCoupon').value) * Number(document.getElementById('invFreq').value) : Number(document.getElementById('invDiv').value);
+        const item = { id: editId ? Number(editId) : Date.now(), name: document.getElementById('invName').value, type, qty: Number(document.getElementById('invQty').value), price: Number(document.getElementById('invPrice').value), nkd: Number(document.getElementById('invNkd').value), fee: Number(document.getElementById('invFee').value), yield: y || 0, date: document.getElementById('invBuyDate').value };
+        await _supabase.from('investments').upsert([item]); loadFromCloud(); closeModal('invModal');
     }
 
-    // ЦЕЛИ
-    function goalOp(id, type, name) { document.getElementById('gaTitle').innerText = name; document.getElementById('gaId').value = id; document.getElementById('gaType').value = type; openModal('gaModal'); }
-    async function processGoalAction() {
-        const id = Number(document.getElementById('gaId').value); const type = document.getElementById('gaType').value;
-        const amt = Number(document.getElementById('gaAmount').value); const goal = db.goals.find(g => g.id === id);
-        goal.saved = type === 'add' ? goal.saved + amt : goal.saved - amt;
-        await _supabase.from('goals').upsert([goal]); renderApp(); closeModal('gaModal');
-    }
-    async function saveGoal() {
-        const item = { id: Date.now(), name: document.getElementById('gName').value, target: Number(document.getElementById('gTarget').value), saved: 0, cur: document.getElementById('gCur').value };
-        db.goals.push(item); await _supabase.from('goals').upsert([item]); renderApp(); closeModal('goalModal');
-    }
-
-    // ОСТАЛЬНОЕ
-    function openPayoutModal() {
-        const port = getActivePortfolio();
-        const active = Object.keys(port).filter(n => port[n].qty > 0);
-        document.getElementById('payAssetId').innerHTML = active.map(n => `<option value="${n}">${n}</option>`).join('');
-        openModal('payoutModal');
-    }
-    async function savePayout() {
-        const item = { id: Date.now(), assetName: document.getElementById('payAssetId').value, amount: Number(document.getElementById('payAmount').value), date: document.getElementById('payDate').value };
-        db.payouts.push(item); await _supabase.from('payouts').upsert([item]); renderApp(); closeModal('payoutModal');
-    }
-    function openSellModal() {
-        const port = getActivePortfolio(); const active = Object.keys(port).filter(n => port[n].qty > 0);
-        document.getElementById('sellAssetId').innerHTML = active.map(n => `<option value="${n}">${n}</option>`).join('');
-        updateSellMax(); openModal('sellModal');
-    }
-    function updateSellMax() { const n = document.getElementById('sellAssetId').value; const port = getActivePortfolio(); document.getElementById('sellMaxInfo').innerText = `Доступно: ${port[n]?port[n].qty:0} шт.`; }
-    async function processSale() {
-        const name = document.getElementById('sellAssetId').value; const qty = Number(document.getElementById('sellQty').value);
-        const price = Number(document.getElementById('sellPrice').value); const port = getActivePortfolio(); const avg = port[name].cost / port[name].qty;
-        const item = { id: Date.now(), assetName: name, qty, sellPrice: price, profit: (price - avg) * qty, profitPerc: ((price/avg)-1)*100, date: document.getElementById('sellDate').value };
-        db.sales.push(item); await _supabase.from('sales').upsert([item]); renderApp(); closeModal('sellModal');
-    }
-    async function saveTransaction() {
-        const item = { id: Date.now(), type: document.getElementById('txType').value, cur: document.getElementById('txCur').value, cat: document.getElementById('txCat').value, sub: document.getElementById('txSubCat').value, amt: Number(document.getElementById('txAmount').value), date: document.getElementById('txDate').value };
-        db.tx.push(item); await _supabase.from('transactions').upsert([item]); renderApp(); closeModal('txModal');
-    }
-
-    function showPage(id, el) { 
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); renderApp();
-    }
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     function toggleEditMode(p) { document.querySelectorAll('.btn-edit-actions').forEach(el => el.style.display = (el.style.display === 'flex' ? 'none' : 'flex')); }
+    function showPage(id, el) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
     function updateInvUI() { const t = document.getElementById('invType').value; document.getElementById('bondUI').style.display = t === 'bond' ? 'block' : 'none'; document.getElementById('stockUI').style.display = t === 'stock' ? 'block' : 'none'; }
-    async function deleteItem(type, id, table) { if(!confirm("Удалить?")) return; db[type] = db[type].filter(i => i.id !== id); renderApp(); await _supabase.from(table).delete().eq('id', id); }
+    async function deleteItem(type, id, table) { if(confirm("Удалить?")) { await _supabase.from(table).delete().eq('id', id); loadFromCloud(); } }
 
-    const catData = {
-        income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"], "Подарки": ["Основное"] },
-        expense: { "Квартира": ["за квартиру", "коммуналка", "интернет", "телефоны"], "Еда": ["мясо", "молочка", "овощи", "заказ"], "Машина": ["бензин"], "Сбережения": ["инвестиции"], "Развлечения": ["красота", "книги", "учеба"], "Дом": ["декор"], "Путешествия": ["виза"] }
-    };
+    const catData = { income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"] }, expense: { "Квартира": ["коммуналка"], "Еда": ["заказ"], "Сбережения": ["инвестиции"] } };
     function updateCategories() { const t = document.getElementById('txType').value; document.getElementById('txCat').innerHTML = Object.keys(catData[t]).map(c => `<option value="${c}">${c}</option>`).join(''); updateSubCategories(); }
     function updateSubCategories() { const t = document.getElementById('txType').value; const c = document.getElementById('txCat').value; document.getElementById('txSubCat').innerHTML = catData[t][c].map(s => `<option value="${s}">${s}</option>`).join(''); }
-
     document.getElementById('filterMonth').value = new Date().toISOString().slice(0,7);
 </script>
 </body>
