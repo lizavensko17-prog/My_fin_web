@@ -3,152 +3,910 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v10.8.4</title>
+    <title>FinanceFlow Pro v10.8.5 (Full Edition)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg-color: #0b1120; --card-bg: #1e293b; --accent-blue: #2563eb; --text-main: #f1f5f9; --text-dim: #94a3b8; --green: #10b981; --red: #ef4444; --yellow: #f59e0b; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; min-height: 100vh; }
-        .sidebar { width: 220px; background-color: #020617; padding: 20px; border-right: 1px solid #334155; flex-shrink: 0; }
-        .logo { font-weight: bold; font-size: 20px; color: var(--accent-blue); margin-bottom: 40px; }
-        .nav-item { padding: 15px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; color: var(--text-dim); transition: 0.2s; }
-        .nav-item.active { background-color: var(--accent-blue); color: white; font-weight: bold; }
-        .content { flex-grow: 1; padding: 30px; height: 100vh; overflow-y: auto; box-sizing: border-box; }
-        .page { display: none; } .page.active { display: block; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background-color: var(--card-bg); padding: 25px; border-radius: 20px; border: 1px solid #334155; position: relative; }
-        .card-value { font-size: 24px; font-weight: bold; margin-top: 5px; }
-        .section-title { font-size: 12px; color: var(--accent-blue); text-transform: uppercase; margin: 25px 0 10px; font-weight: 800; letter-spacing: 1px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--text-dim); padding: 12px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #334155; }
-        td { padding: 12px; border-bottom: 1px solid #111827; font-size: 14px; }
-        .btn-edit-actions { display: none; gap: 8px; align-items: center; }
+        :root {
+            --bg-color: #0b1120;
+            --card-bg: #1e293b;
+            --accent-blue: #2563eb;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --green: #10b981;
+            --red: #ef4444;
+            --yellow: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 220px;
+            background-color: #020617;
+            padding: 20px;
+            border-right: 1px solid #334155;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 20px;
+            color: var(--accent-blue);
+            margin-bottom: 40px;
+        }
+
+        .nav-item {
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            color: var(--text-dim);
+            transition: 0.2s;
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-blue);
+            color: white;
+            font-weight: bold;
+        }
+
+        .content {
+            flex-grow: 1;
+            padding: 30px;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        .card-label {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .card-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            margin: 25px 0 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-dim);
+            padding: 15px;
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #334155;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #111827;
+            font-size: 14px;
+        }
+
+        .btn-edit-actions {
+            display: none;
+            gap: 8px;
+            align-items: center;
+        }
+
         .edit-mode .btn-edit-actions { display: flex; }
-        .btn-action { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; }
-        .btn-del { color: var(--red); } .btn-edit { color: var(--accent-blue); }
-        .btn-main { background: var(--accent-blue); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; }
-        .btn-outline { background: none; border: 1px solid #475569; color: white; padding: 8px 15px; border-radius: 10px; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+
+        .btn-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+
+        .btn-del { color: var(--red); }
+        .btn-edit { color: var(--accent-blue); }
+
+        .btn-main {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        .btn-outline {
+            background: none;
+            border: 1px solid #475569;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
         .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 420px; border: 1px solid #475569; }
-        input, select { width: 100%; padding: 12px; background: #0b1120; border: 1px solid #334155; color: white; border-radius: 10px; margin-bottom: 15px; box-sizing: border-box; }
-        .pie-chart { width: 100px; height: 100px; border-radius: 50%; margin: 10px auto; background: #111827; }
-        .goal-btn { width: 35px; height: 35px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; }
-        .legend-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px; }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 420px;
+            border: 1px solid #475569;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #0b1120;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .pie-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px auto;
+            background: #111827;
+        }
+
+        .goal-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .legend-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
+
 <div id="auth-section" style="position: fixed; inset: 0; background: #0b1120; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;">
     <h2 style="color: #2563eb; margin-bottom: 20px;">FinanceFlow Login</h2>
     <input type="email" id="email" placeholder="Email" style="width: 280px;">
     <input type="password" id="password" placeholder="Пароль" style="width: 280px;">
     <button onclick="handleLogin()" class="btn-main" style="width: 280px;">Войти</button>
 </div>
+
 <div id="dashboard" style="display:none; width: 100%;">
-    <div class="sidebar"><div class="logo">FINANCE FLOW 10.8.4</div>
+    
+    <div class="sidebar">
+        <div class="logo">FINANCE FLOW</div>
         <div class="nav-item active" onclick="showPage('overview', this)">Обзор</div>
         <div class="nav-item" onclick="showPage('transactions', this)">Транзакции</div>
         <div class="nav-item" onclick="showPage('investments', this)">Инвестиции</div>
         <div class="nav-item" onclick="showPage('goals', this)">Цели</div>
     </div>
+
     <div class="content">
+        
         <div id="overview" class="page active">
             <h1>Состояние счетов</h1>
+            
             <div class="section-title">Валюта: BYN</div>
-            <div class="grid"><div class="card"><div class="card-label">Доход</div><div class="card-value" id="ov-inc-byn" style="color:var(--green)">0</div></div><div class="card"><div class="card-label">Расход</div><div class="card-value" id="ov-exp-byn" style="color:var(--red)">0</div></div></div>
-            <div class="section-title">Валюта: RUB</div>
-            <div class="grid"><div class="card"><div class="card-label">Доход</div><div class="card-value" id="ov-inc-rub" style="color:var(--green)">0</div></div><div class="card"><div class="card-label">Расход</div><div class="card-value" id="ov-exp-rub" style="color:var(--red)">0</div></div></div>
-            <div class="section-title">Инвестиции</div>
-            <div class="grid"><div class="card"><div class="card-label">Пассивный доход (чист)</div><div class="card-value" id="ov-passive">0 ₽</div></div><div class="card"><div class="card-label" style="color:var(--green)">Всего получено (гряз)</div><div class="card-value" id="ov-total-payouts-gross" style="color:var(--green)">0 ₽</div></div><div class="card"><div class="card-label">Всего получено (чист)</div><div class="card-value" id="ov-total-payouts-net">0 ₽</div></div></div>
-        </div>
-        <div id="transactions" class="page">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h1>Транзакции</h1>
-                <div style="display: flex; gap: 10px;"><input type="month" id="filterMonth" style="margin:0; width: 160px;" onchange="renderApp()"><button class="btn-outline" onclick="toggleEditMode('transactions')">✎ Правка</button><button class="btn-main" style="width: auto;" onclick="openModal('txModal')">+ Операция</button></div>
+            <div class="grid">
+                <div class="card"><div class="card-label">Доход</div><div class="card-value" id="ov-inc-byn" style="color:var(--green)">0</div></div>
+                <div class="card"><div class="card-label">Расход</div><div class="card-value" id="ov-exp-byn" style="color:var(--red)">0</div></div>
             </div>
+            
+            <div class="section-title">Валюта: RUB</div>
+            <div class="grid">
+                <div class="card"><div class="card-label">Доход</div><div class="card-value" id="ov-inc-rub" style="color:var(--green)">0</div></div>
+                <div class="card"><div class="card-label">Расход</div><div class="card-value" id="ov-exp-rub" style="color:var(--red)">0</div></div>
+            </div>
+
+            <div class="section-title">Инвестиции (Прогноз)</div>
+            <div class="grid">
+                <div class="card"><div class="card-label">Ожидаемый пассивный доход</div><div class="card-value" id="ov-passive">0 ₽</div></div>
+            </div>
+        </div>
+
+        <div id="transactions" class="page">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h1>Транзакции</h1>
+                <div style="display: flex; gap: 10px;">
+                    <input type="month" id="filterMonth" style="margin:0; width: 160px;" onchange="renderApp()">
+                    <button class="btn-outline" onclick="toggleEditMode('transactions')">✎ Правка</button>
+                    <button class="btn-main" style="width: auto;" onclick="openModal('txModal')">+ Операция</button>
+                </div>
+            </div>
+            
             <div class="grid" style="grid-template-columns: repeat(4, 1fr);">
                 <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">BYN Доход</div><div id="chart-inc-byn" class="pie-chart"></div><div id="legend-inc-byn"></div></div>
                 <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">BYN Расход</div><div id="chart-exp-byn" class="pie-chart"></div><div id="legend-exp-byn"></div></div>
                 <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">RUB Доход</div><div id="chart-inc-rub" class="pie-chart"></div><div id="legend-inc-rub"></div></div>
                 <div class="card" style="padding:15px"><div class="card-label" style="font-size:10px">RUB Расход</div><div id="chart-exp-rub" class="pie-chart"></div><div id="legend-exp-rub"></div></div>
             </div>
-            <div class="card" style="padding:0; overflow:hidden;"><table id="table-tx-container"><thead><tr><th>Дата</th><th>Кат.</th><th>Подкат</th><th>Сумма</th><th></th></tr></thead><tbody id="table-tx"></tbody></table></div>
-        </div>
-        <div id="investments" class="page">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h1>Инвестиции</h1>
-                <div style="display: flex; gap: 10px;"><button class="btn-outline" onclick="toggleEditMode('investments')">✎ Режим правки</button><button class="btn-outline" onclick="openPayoutModal()">💰 Выплаты</button><button class="btn-outline" style="border-color: var(--red); color: var(--red);" onclick="openSellModal()">📉 Продать</button><button class="btn-main" style="width: auto;" onclick="openAddAssetModal()">+ Купить</button></div>
+            
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table id="table-tx-container">
+                    <thead><tr><th>Дата</th><th>Категория</th><th>Подкатегория</th><th>Сумма</th><th></th></tr></thead>
+                    <tbody id="table-tx"></tbody>
+                </table>
             </div>
-            <div class="card"><table id="table-summary"></table></div>
-            <div class="section-title">История сделок</div>
-            <div class="card" style="padding:0; overflow:hidden;"><table id="table-portfolio-container"><thead><tr><th>Дата</th><th>Актив</th><th>Сумма</th><th>Действия</th></tr></thead><tbody id="table-portfolio"></tbody></table></div>
         </div>
+
+        <div id="investments" class="page">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h1>Инвестиции</h1>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-outline" onclick="toggleEditMode('investments')">✎ Режим правки</button>
+                    <button class="btn-outline" onclick="openPayoutModal()">💰 Выплаты</button>
+                    <button class="btn-outline" style="border-color: var(--red); color: var(--red);" onclick="openSellModal()">📉 Продать</button>
+                    <button class="btn-main" style="width: auto;" onclick="openAddAssetModal()">+ Купить</button>
+                </div>
+            </div>
+
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="card">
+                    <div class="card-label">Получено (Грязными / Gross)</div>
+                    <div class="card-value" id="inv-widget-gross" style="color:var(--green)">0 ₽</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Удержанный налог (13%)</div>
+                    <div class="card-value" id="inv-widget-tax" style="color:var(--red)">0 ₽</div>
+                </div>
+                <div class="card">
+                    <div class="card-label">Получено (Чистыми / Net)</div>
+                    <div class="card-value" id="inv-widget-net" style="color:var(--accent-blue)">0 ₽</div>
+                </div>
+            </div>
+
+            <div class="section-title">Состояние портфеля</div>
+            <div class="card" style="padding:0; overflow:hidden; margin-bottom: 30px;">
+                <table id="table-summary"></table>
+            </div>
+
+            <div class="section-title">История сделок (Купля/Продажа)</div>
+            <div class="card" style="padding:0; overflow:hidden; margin-bottom: 30px;">
+                <table id="table-portfolio-container">
+                    <thead><tr><th>Дата</th><th>Актив</th><th>Сумма сделки</th><th>Действия</th></tr></thead>
+                    <tbody id="table-portfolio"></tbody>
+                </table>
+            </div>
+
+            <div class="section-title">История выплат (Дивиденды / Купоны)</div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <table id="table-payouts-container">
+                    <thead><tr><th>Дата</th><th>Актив</th><th>Сумма (Грязными)</th><th>Действия</th></tr></thead>
+                    <tbody id="table-payouts"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="goals" class="page">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h1>Цели</h1><button class="btn-main" style="width: auto;" onclick="openModal('goalModal')">+ Новая</button></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h1>Цели</h1>
+                <button class="btn-main" style="width: auto;" onclick="openModal('goalModal')">+ Новая</button>
+            </div>
             <div id="goals-list" class="grid"></div>
         </div>
     </div>
 </div>
-<div id="invModal" class="modal"><div class="modal-content"><h3 id="invModalTitle">Купить актив</h3><input type="hidden" id="editAssetId"><select id="invType" onchange="updateInvUI()"><option value="bond">Облигация</option><option value="stock">Акция</option><option value="fund">Фонд</option></select><input type="text" id="invName" placeholder="Название"><input type="number" id="invQty" placeholder="Кол-во шт."><input type="number" id="invPrice" placeholder="Цена за шт."><input type="number" id="invNkd" placeholder="Общий НКД"><input type="number" id="invFee" placeholder="Комиссия"><div id="bondUI"><input type="number" id="invCoupon" placeholder="Купон"><select id="invFreq"><option value="4">4 раза в год</option><option value="2">2 раза</option><option value="12">Ежемесячно</option></select></div><div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Дивиденды в год"></div><input type="date" id="invBuyDate"><button class="btn-main" onclick="saveAsset()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button></div></div>
-<div id="payoutModal" class="modal"><div class="modal-content"><h3>Зачислить выплату</h3><select id="payAssetId"></select><input type="number" id="payAmount" placeholder="Сумма (грязными)"><input type="date" id="payDate"><button class="btn-main" onclick="savePayout()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button></div></div>
-<div id="sellModal" class="modal"><div class="modal-content"><h3>Продать актив</h3><select id="sellAssetId" onchange="updateSellMax()"></select><div id="sellMaxInfo" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Доступно: 0 шт.</div><input type="number" id="sellQty" placeholder="Кол-во на продажу"><input type="number" id="sellPrice" placeholder="Цена продажи (за 1 шт.)"><input type="date" id="sellDate"><button class="btn-main" style="background: var(--red);" onclick="processSale()">Зафиксировать продажу</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('sellModal')">Отмена</button></div></div>
-<div id="txModal" class="modal"><div class="modal-content"><h3>Новая операция</h3><select id="txType" onchange="updateCategories()"><option value="expense">Расход</option><option value="income">Доход</option></select><select id="txCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><select id="txCat" onchange="updateSubCategories()"></select><select id="txSubCat"></select><input type="number" id="txAmount" placeholder="Сумма"><input type="text" id="txNote" placeholder="Заметка"><input type="date" id="txDate"><button class="btn-main" onclick="saveTransaction()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button></div></div>
-<div id="goalModal" class="modal"><div class="modal-content"><h3>Создать цель</h3><input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><button class="btn-main" onclick="saveGoal()">Создать</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('goalModal')">Отмена</button></div></div>
-<div id="gaModal" class="modal"><div class="modal-content"><h3 id="gaTitle">Операция</h3><input type="hidden" id="gaId"><input type="hidden" id="gaType"><input type="number" id="gaAmount" placeholder="Сумма"><button class="btn-main" onclick="processGoalAction()">Подтвердить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('gaModal')">Отмена</button></div></div>
+
+<div id="invModal" class="modal">
+    <div class="modal-content">
+        <h3 id="invModalTitle">Купить актив</h3>
+        <input type="hidden" id="editAssetId">
+        <select id="invType" onchange="updateInvUI()">
+            <option value="bond">Облигация</option>
+            <option value="stock">Акция</option>
+            <option value="fund">Фонд</option>
+        </select>
+        <input type="text" id="invName" placeholder="Название тикера">
+        <input type="number" id="invQty" placeholder="Количество шт.">
+        <input type="number" id="invPrice" placeholder="Цена за 1 шт.">
+        <input type="number" id="invNkd" placeholder="Общий НКД (для облигаций)">
+        <input type="number" id="invFee" placeholder="Комиссия брокера">
+        <div id="bondUI">
+            <input type="number" id="invCoupon" placeholder="Размер купона">
+            <select id="invFreq">
+                <option value="4">4 раза в год</option>
+                <option value="2">2 раза в год</option>
+                <option value="12">Ежемесячно</option>
+            </select>
+        </div>
+        <div id="stockUI" style="display:none">
+            <input type="number" id="invDiv" placeholder="Ожидаемые дивиденды в год">
+        </div>
+        <input type="date" id="invBuyDate">
+        <button class="btn-main" onclick="saveAsset()">Сохранить</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="payoutModal" class="modal">
+    <div class="modal-content">
+        <h3>Зачислить выплату</h3>
+        <select id="payAssetId"></select>
+        <input type="number" id="payAmount" placeholder="Сумма (вводить ГРЯЗНЫМИ)">
+        <input type="date" id="payDate">
+        <button class="btn-main" onclick="savePayout()">Сохранить</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="sellModal" class="modal">
+    <div class="modal-content">
+        <h3>Продать актив</h3>
+        <select id="sellAssetId" onchange="updateSellMax()"></select>
+        <div id="sellMaxInfo" style="font-size: 12px; color: var(--text-dim); margin-bottom: 15px;">Доступно: 0 шт.</div>
+        <input type="number" id="sellQty" placeholder="Количество на продажу">
+        <input type="number" id="sellPrice" placeholder="Цена продажи (за 1 шт.)">
+        <input type="date" id="sellDate">
+        <button class="btn-main" style="background: var(--red);" onclick="processSale()">Зафиксировать продажу</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('sellModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="txModal" class="modal">
+    <div class="modal-content">
+        <h3>Новая операция</h3>
+        <select id="txType" onchange="updateCategories()">
+            <option value="expense">Расход</option>
+            <option value="income">Доход</option>
+        </select>
+        <select id="txCur">
+            <option value="BYN">BYN</option>
+            <option value="RUB">RUB</option>
+        </select>
+        <select id="txCat" onchange="updateSubCategories()"></select>
+        <select id="txSubCat"></select>
+        <input type="number" id="txAmount" placeholder="Сумма">
+        <input type="text" id="txNote" placeholder="Заметка (опционально)">
+        <input type="date" id="txDate">
+        <button class="btn-main" onclick="saveTransaction()">Сохранить</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="goalModal" class="modal">
+    <div class="modal-content">
+        <h3>Создать цель</h3>
+        <input type="text" id="gName" placeholder="Название цели">
+        <input type="number" id="gTarget" placeholder="Необходимая сумма">
+        <select id="gCur">
+            <option value="BYN">BYN</option>
+            <option value="RUB">RUB</option>
+        </select>
+        <button class="btn-main" onclick="saveGoal()">Создать</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('goalModal')">Отмена</button>
+    </div>
+</div>
+
+<div id="gaModal" class="modal">
+    <div class="modal-content">
+        <h3 id="gaTitle">Операция</h3>
+        <input type="hidden" id="gaId">
+        <input type="hidden" id="gaType">
+        <input type="number" id="gaAmount" placeholder="Сумма">
+        <button class="btn-main" onclick="processGoalAction()">Подтвердить</button>
+        <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('gaModal')">Отмена</button>
+    </div>
+</div>
+
 <script>
-    const S_URL = 'https://kijosedzdnpjgtrhrvbu.supabase.co', S_KEY = 'sb_publishable_WnFHswDh1LLnoR61Sl2UXg_Iz6IKQc5', _supabase = supabase.createClient(S_URL, S_KEY), TAX_MULT = 0.87, colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+    // НАСТРОЙКИ BAZЫ ДАННЫХ SUPABASE
+    const S_URL = 'https://kijosedzdnpjgtrhrvbu.supabase.co';
+    const S_KEY = 'sb_publishable_WnFHswDh1LLnoR61Sl2UXg_Iz6IKQc5';
+    const _supabase = supabase.createClient(S_URL, S_KEY);
+    
+    // КОНСТАНТЫ
+    const TAX_RATE = 0.13; // Налог 13%
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6', '#f43f5e'];
+    
+    // ЛОКАЛЬНОЕ ХРАНИЛИЩЕ
     let db = { tx: [], inv: [], payouts: [], goals: [], sales: [] };
-    async function handleLogin() { const e = document.getElementById('email').value, p = document.getElementById('password').value; const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p }); if (!error) { document.getElementById('auth-section').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; loadFromCloud(); } }
-    async function loadFromCloud() { const tbs = ['transactions', 'investments', 'payouts', 'goals', 'sales']; for (let t of tbs) { const { data } = await _supabase.from(t).select('*'); if (data) db[t === 'transactions' ? 'tx' : (t === 'investments' ? 'inv' : t)] = data; } renderApp(); }
+
+    // ПОЛНЫЙ СЛОВАРЬ КАТЕГОРИЙ (ВОССТАНОВЛЕН)
+    const catData = { 
+        income: { 
+            "Мама": ["Основное", "Доп. помощь", "Проект"], 
+            "Репетитор BYN": ["Основное", "Доп. занятия", "Группы"], 
+            "Репетитор RUS": ["Основное", "Доп. занятия", "Интенсив"], 
+            "Инвестиции": ["Купоны", "Дивиденды", "Продажа активов"],
+            "Подарки": ["День рождения", "Праздники", "Разное"],
+            "Прочее": ["Кешбэк", "Продажа вещей", "Возврат"]
+        }, 
+        expense: { 
+            "Квартира": ["Аренда", "Коммуналка", "Интернет", "Связь", "Ремонт"], 
+            "Еда": ["Продукты (супермаркет)", "Мясо/Рыба", "Молочка", "Овощи/Фрукты", "Заказ еды", "Кафе/Рестораны", "Вкусняшки"], 
+            "Транспорт": ["Бензин", "Такси", "Общественный", "ТО/Ремонт", "Страховка"], 
+            "Сбережения": ["Инвестиции", "Копилка", "Валюта"], 
+            "Развлечения": ["Кино/Театры", "Книги", "Подписки", "Хобби", "Игры"], 
+            "Здоровье": ["Аптека", "Врачи", "Анализы", "Спорт", "Уход за собой", "Косметика"],
+            "Дом": ["Бытовая химия", "Декор", "Посуда", "Техника"], 
+            "Одежда": ["Обувь", "Повседневная", "Верхняя одежда", "Аксессуары"],
+            "Путешествия": ["Билеты", "Отели", "Виза", "Страховка", "Сувениры"]
+        } 
+    };
+
+    // АВТОРИЗАЦИЯ
+    async function handleLogin() { 
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value; 
+        const { error } = await _supabase.auth.signInWithPassword({ email: e, password: p }); 
+        if (!error) { 
+            document.getElementById('auth-section').style.display = 'none'; 
+            document.getElementById('dashboard').style.display = 'flex'; 
+            loadFromCloud(); 
+        } else {
+            alert("Ошибка входа!");
+        }
+    }
+
+    // ЗАГРУЗКА ДАННЫХ
+    async function loadFromCloud() { 
+        const tables = ['transactions', 'investments', 'payouts', 'goals', 'sales']; 
+        for (let t of tables) { 
+            const { data } = await _supabase.from(t).select('*'); 
+            if (data) {
+                db[t === 'transactions' ? 'tx' : (t === 'investments' ? 'inv' : t)] = data;
+            }
+        } 
+        renderApp(); 
+    }
+
+    // ГЛАВНАЯ ФУНКЦИЯ ОТРИСОВКИ (РАЗВЕРНУТАЯ)
     function renderApp() {
-        const m = document.getElementById('filterMonth').value, curTx = db.tx.filter(t => t.date && t.date.startsWith(m));
-        let iB = 0, eB = 0, iR = 0, eR = 0; curTx.forEach(t => { if(t.cur==='BYN') t.type==='income'?iB+=t.amt:eB+=t.amt; else t.type==='income'?iR+=t.amt:eR+=t.amt; });
-        document.getElementById('ov-inc-byn').innerText = iB + ' BYN'; document.getElementById('ov-exp-byn').innerText = eB + ' BYN'; document.getElementById('ov-inc-rub').innerText = iR + ' ₽'; document.getElementById('ov-exp-rub').innerText = eR + ' ₽';
-        document.getElementById('table-tx').innerHTML = curTx.sort((a,b)=>b.id-a.id).map(t => `<tr><td>${t.date.slice(8)}</td><td>${t.cat}</td><td><b>${t.sub}</b></td><td style="color:${t.type==='income'?'#10b981':'#ef4444'}">${t.amt} ${t.cur}</td><td><div class="btn-edit-actions" id="table-tx-container"><button class="btn-action btn-del" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></div></td></tr>`).join('');
-        renderCurrencyCharts(curTx);
-        const invS = getActivePortfolio();
-        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Доход/год</th><th>Прибыль</th></tr></thead>` + Object.keys(invS).filter(n => invS[n].qty > 0).map(n => `<tr><td><b>${n}</b></td><td>${invS[n].qty} шт.</td><td>${invS[n].cost.toLocaleString()} ₽</td><td style="color:var(--yellow)">${invS[n].proj_gross.toLocaleString()} ₽</td><td style="color:var(--green)">+${invS[n].real_earned.toLocaleString()} ₽</td></tr>`).join('');
-        document.getElementById('table-portfolio').innerHTML = db.inv.slice().sort((a,b)=>b.id-a.id).map(i => `<tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+(i.nkd||0)+(i.fee||0)).toLocaleString()} ₽</td><td><div class="btn-edit-actions" id="table-portfolio-container"><button class="btn-action btn-edit" onclick="editAsset(${i.id})">✎</button><button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></div></td></tr>`).join('');
-        let tPaG = 0, tPG = 0; db.payouts.forEach(p => tPaG += p.amount); Object.values(invS).forEach(s => tPG += s.proj_gross);
-        document.getElementById('ov-passive').innerText = (tPG * TAX_MULT).toLocaleString() + ' ₽'; document.getElementById('ov-total-payouts-gross').innerText = tPaG.toLocaleString() + ' ₽'; document.getElementById('ov-total-payouts-net').innerText = (tPaG * TAX_MULT).toLocaleString() + ' ₽';
+        const month = document.getElementById('filterMonth').value;
+        const currentTx = db.tx.filter(t => t.date && t.date.startsWith(month));
+        
+        // --- 1. Вкладка "Обзор" ---
+        let incByn = 0, expByn = 0, incRub = 0, expRub = 0; 
+        currentTx.forEach(t => { 
+            if (t.cur === 'BYN') {
+                t.type === 'income' ? incByn += t.amt : expByn += t.amt; 
+            } else { 
+                t.type === 'income' ? incRub += t.amt : expRub += t.amt; 
+            }
+        });
+        
+        document.getElementById('ov-inc-byn').innerText = incByn.toLocaleString() + ' BYN'; 
+        document.getElementById('ov-exp-byn').innerText = expByn.toLocaleString() + ' BYN'; 
+        document.getElementById('ov-inc-rub').innerText = incRub.toLocaleString() + ' ₽'; 
+        document.getElementById('ov-exp-rub').innerText = expRub.toLocaleString() + ' ₽';
+
+        // --- 2. Вкладка "Транзакции" (Таблица и Графики) ---
+        document.getElementById('table-tx').innerHTML = currentTx.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
+            <tr>
+                <td>${t.date.slice(8, 10)}.${t.date.slice(5, 7)}</td>
+                <td>${t.cat}</td>
+                <td><b>${t.sub}</b></td>
+                <td style="color:${t.type === 'income' ? 'var(--green)' : 'var(--red)'}">${t.amt} ${t.cur}</td>
+                <td>
+                    <div class="btn-edit-actions" id="table-tx-container">
+                        <button class="btn-action btn-del" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+        renderCurrencyCharts(currentTx);
+
+        // --- 3. Вкладка "Инвестиции" ---
+        const portfolioData = getActivePortfolio();
+        
+        // Подсчет налогов из выплат
+        let totalPayoutsGross = 0; 
+        
+        // Отрисовка таблицы истории выплат
+        document.getElementById('table-payouts').innerHTML = db.payouts.slice().sort((a,b) => new Date(b.date) - new Date(a.date)).map(p => {
+            totalPayoutsGross += p.amount;
+            return `
+            <tr>
+                <td>${p.date}</td>
+                <td><b>${p.assetName}</b></td>
+                <td style="color:var(--green)">${p.amount.toLocaleString()} ₽</td>
+                <td>
+                    <div class="btn-edit-actions">
+                        <button class="btn-action btn-del" onclick="deleteItem('payouts', ${p.id}, 'payouts')">🗑</button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // Виджеты инвестиций
+        const totalTax = totalPayoutsGross * TAX_RATE;
+        const totalPayoutsNet = totalPayoutsGross - totalTax;
+
+        document.getElementById('inv-widget-gross').innerText = totalPayoutsGross.toLocaleString() + ' ₽'; 
+        document.getElementById('inv-widget-tax').innerText = totalTax.toLocaleString() + ' ₽'; 
+        document.getElementById('inv-widget-net').innerText = totalPayoutsNet.toLocaleString() + ' ₽';
+
+        // Ожидаемый пассивный доход
+        let totalProjGross = 0;
+        Object.values(portfolioData).forEach(s => totalProjGross += s.proj_gross);
+        document.getElementById('ov-passive').innerText = (totalProjGross * (1 - TAX_RATE)).toLocaleString() + ' ₽'; 
+
+        // Таблица портфеля
+        document.getElementById('table-summary').innerHTML = `
+            <thead>
+                <tr>
+                    <th>Актив</th>
+                    <th>Кол-во</th>
+                    <th>Вложено</th>
+                    <th>Ожидаемый Доход/год</th>
+                    <th>Реально получено</th>
+                </tr>
+            </thead>
+        ` + Object.keys(portfolioData).filter(n => portfolioData[n].qty > 0).map(n => `
+            <tr>
+                <td><b>${n}</b></td>
+                <td>${portfolioData[n].qty} шт.</td>
+                <td>${portfolioData[n].cost.toLocaleString()} ₽</td>
+                <td style="color:var(--yellow)">${portfolioData[n].proj_gross.toLocaleString()} ₽</td>
+                <td style="color:var(--green)">+${portfolioData[n].real_earned.toLocaleString()} ₽</td>
+            </tr>
+        `).join('');
+
+        // Таблица истории сделок
+        document.getElementById('table-portfolio').innerHTML = db.inv.slice().sort((a,b) => b.id - a.id).map(i => {
+            const isSell = i.qty < 0;
+            const actionText = isSell ? "Продажа" : "Покупка";
+            const actionColor = isSell ? "var(--red)" : "var(--accent-blue)";
+            return `
+            <tr>
+                <td>${i.date}</td>
+                <td><span style="color:${actionColor}; font-size:10px; text-transform:uppercase; margin-right:5px;">${actionText}</span> <b>${i.name}</b></td>
+                <td>${(Math.abs(i.qty) * i.price + (i.nkd||0) + (i.fee||0)).toLocaleString()} ₽</td>
+                <td>
+                    <div class="btn-edit-actions" id="table-portfolio-container">
+                        ${!isSell ? `<button class="btn-action btn-edit" onclick="editAsset(${i.id})">✎</button>` : ''}
+                        <button class="btn-action btn-del" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // --- 4. Вкладка "Цели" ---
         document.getElementById('goals-list').innerHTML = db.goals.map(g => {
-            const p = Math.min((g.saved/g.target)*100, 100);
-            return `<div class="card"><b>${g.name}</b><br><small>Осталось: <b style="color:var(--yellow)">${Math.max(g.target-g.saved,0).toLocaleString()} ${g.cur}</b></small><div style="height:8px; background:#0f172a; border-radius:4px; margin:12px 0; overflow:hidden;"><div style="height:100%; background:var(--accent-blue); width:${p}%"></div></div><div style="display:flex; justify-content:center; gap:10px;"><button class="goal-btn" style="background:var(--red)" onclick="goalOp(${g.id},'sub','${g.name}')">−</button><button class="goal-btn" style="background:var(--green)" onclick="goalOp(${g.id},'add','${g.name}')">+</button></div></div>`;
+            const percentage = Math.min((g.saved / g.target) * 100, 100);
+            return `
+            <div class="card">
+                <b>${g.name}</b><br>
+                <small>Осталось накопить: <b style="color:var(--yellow)">${Math.max(g.target - g.saved, 0).toLocaleString()} ${g.cur}</b></small>
+                <div style="height:8px; background:#0f172a; border-radius:4px; margin:12px 0; overflow:hidden;">
+                    <div style="height:100%; background:var(--accent-blue); width:${percentage}%"></div>
+                </div>
+                <div style="display:flex; justify-content:center; gap:10px;">
+                    <button class="goal-btn" style="background:var(--red)" onclick="goalOp(${g.id},'sub','${g.name}')">−</button>
+                    <button class="goal-btn" style="background:var(--green)" onclick="goalOp(${g.id},'add','${g.name}')">+</button>
+                </div>
+            </div>`;
         }).join('');
     }
-    function renderCurrencyCharts(txs) {
-        ['BYN', 'RUB'].forEach(cur => { ['income', 'expense'].forEach(type => {
-            const st = txs.filter(t => t.cur === cur && t.type === type), tots = {}; st.forEach(t => tots[t.cat] = (tots[t.cat] || 0) + t.amt);
-            const srt = Object.entries(tots).sort((a,b) => b[1]-a[1]), sum = srt.reduce((a,b) => a + b[1], 0); let c = 0;
-            const gr = srt.map((x, i) => { const s = (c/sum)*100; c += x[1]; const e = (c/sum)*100; return `${colors[i % colors.length]} ${s}% ${e}%`; }).join(', ');
-            const id = `${type === 'income' ? 'inc' : 'exp'}-${cur.toLowerCase()}`;
-            document.getElementById(`chart-${id}`).style.background = sum ? `conic-gradient(${gr})` : '#111827';
-            document.getElementById(`legend-${id}`).innerHTML = srt.map((x, i) => `<div class="legend-item"><span>${x[0]}</span><b>${((x[1]/sum)*100).toFixed(0)}%</b></div>`).join('');
-        }); });
-    }
-    function getActivePortfolio() { const s = {}; db.inv.forEach(i => { if(!s[i.name]) s[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0 }; s[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0); s[i.name].qty += i.qty; s[i.name].proj_gross += (i.qty * i.yield); }); db.payouts.forEach(p => { if(s[p.assetName]) s[p.assetName].real_earned += p.amount; }); return s; }
-    function editAsset(id) { const a = db.inv.find(i => i.id === id); if (a) { document.getElementById('invModalTitle').innerText = "Редактировать"; document.getElementById('editAssetId').value = a.id; document.getElementById('invName').value = a.name; document.getElementById('invQty').value = a.qty; document.getElementById('invPrice').value = a.price; updateInvUI(); openModal('invModal'); } }
-    async function saveAsset() { const eid = document.getElementById('editAssetId').value, t = document.getElementById('invType').value; const y = (t === 'bond') ? Number(document.getElementById('invCoupon').value) * Number(document.getElementById('invFreq').value) : Number(document.getElementById('invDiv').value); const it = { id: eid ? Number(eid) : Date.now(), name: document.getElementById('invName').value, type: t, qty: Number(document.getElementById('invQty').value), price: Number(document.getElementById('invPrice').value), nkd: Number(document.getElementById('invNkd').value), fee: Number(document.getElementById('invFee').value), yield: y || 0, date: document.getElementById('invBuyDate').value }; await _supabase.from('investments').upsert([it]); loadFromCloud(); closeModal('invModal'); }
-    function goalOp(id, type, name) { document.getElementById('gaTitle').innerText = name; document.getElementById('gaId').value = id; document.getElementById('gaType').value = type; openModal('gaModal'); }
-    async function processGoalAction() { const id = Number(document.getElementById('gaId').value), type = document.getElementById('gaType').value, amt = Number(document.getElementById('gaAmount').value), g = db.goals.find(x => x.id === id); g.saved = type === 'add' ? g.saved + amt : g.saved - amt; await _supabase.from('goals').upsert([g]); renderApp(); closeModal('gaModal'); }
-    async function saveGoal() { const it = { id: Date.now(), name: document.getElementById('gName').value, target: Number(document.getElementById('gTarget').value), saved: 0, cur: document.getElementById('gCur').value }; await _supabase.from('goals').upsert([it]); loadFromCloud(); closeModal('goalModal'); }
-    async function savePayout() { const it = { id: Date.now(), assetName: document.getElementById('payAssetId').value, amount: Number(document.getElementById('payAmount').value), date: document.getElementById('payDate').value }; await _supabase.from('payouts').upsert([it]); loadFromCloud(); closeModal('payoutModal'); }
-    async function saveTransaction() { const it = { id: Date.now(), type: document.getElementById('txType').value, cur: document.getElementById('txCur').value, cat: document.getElementById('txCat').value, sub: document.getElementById('txSubCat').value, amt: Number(document.getElementById('txAmount').value), date: document.getElementById('txDate').value }; await _supabase.from('transactions').upsert([it]); loadFromCloud(); closeModal('txModal'); }
-    function openModal(id) { document.getElementById(id).classList.add('active'); } function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-    function toggleEditMode(p) { document.querySelectorAll('.btn-edit-actions').forEach(el => el.style.display = (el.style.display === 'flex' ? 'none' : 'flex')); }
-    function showPage(id, el) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
-    function updateInvUI() { const t = document.getElementById('invType').value; document.getElementById('bondUI').style.display = t === 'bond' ? 'block' : 'none'; document.getElementById('stockUI').style.display = t === 'stock' ? 'block' : 'none'; }
-    async function deleteItem(type, id, table) { if(confirm("Удалить?")) { await _supabase.from(table).delete().eq('id', id); loadFromCloud(); } }
-    
-    // ВОТ ЗДЕСЬ ВОССТАНОВЛЕН ПОЛНЫЙ СЛОВАРЬ КАТЕГОРИЙ
-    const catData = { 
-        income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"], "Подарки": ["Основное"] }, 
-        expense: { "Квартира": ["за квартиру", "коммуналка", "интернет", "телефоны"], "Еда": ["мясо", "молочка", "овощи", "заказ"], "Машина": ["бензин"], "Сбережения": ["инвестиции"], "Развлечения": ["красота", "книги", "учеба"], "Дом": ["декор"], "Путешествия": ["виза"] } 
-    };
-    function updateCategories() { const t = document.getElementById('txType').value; document.getElementById('txCat').innerHTML = Object.keys(catData[t]).map(c => `<option value="${c}">${c}</option>`).join(''); updateSubCategories(); }
-    function updateSubCategories() { const t = document.getElementById('txType').value, c = document.getElementById('txCat').value; if(catData[t][c]) { document.getElementById('txSubCat').innerHTML = catData[t][c].map(s => `<option value="${s}">${s}</option>`).join(''); } }
-    
-    // И ДОБАВЛЕН ЗАПУСК ЭТОЙ ФУНКЦИИ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-    updateCategories();
 
+    // ВСПОМОГАТЕЛЬНАЯ ЛОГИКА ИНВЕСТИЦИЙ
+    function getActivePortfolio() { 
+        const s = {}; 
+        db.inv.forEach(i => { 
+            if(!s[i.name]) s[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0 }; 
+            
+            // Если покупка
+            if (i.qty > 0) {
+                s[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0); 
+                s[i.name].proj_gross += (i.qty * (i.yield || 0)); 
+            } else {
+                // Если продажа (qty отрицательное)
+                s[i.name].cost -= (Math.abs(i.qty) * i.price);
+                s[i.name].proj_gross -= (Math.abs(i.qty) * (i.yield || 0));
+            }
+            s[i.name].qty += i.qty; 
+        }); 
+        
+        db.payouts.forEach(p => { 
+            if(s[p.assetName]) s[p.assetName].real_earned += p.amount; 
+        }); 
+        return s; 
+    }
+
+    // ГРАФИКИ
+    function renderCurrencyCharts(txs) {
+        ['BYN', 'RUB'].forEach(cur => { 
+            ['income', 'expense'].forEach(type => {
+                const subTx = txs.filter(t => t.cur === cur && t.type === type);
+                const totals = {}; 
+                subTx.forEach(t => totals[t.cat] = (totals[t.cat] || 0) + t.amt);
+                
+                const sorted = Object.entries(totals).sort((a,b) => b[1] - a[1]);
+                const sum = sorted.reduce((a,b) => a + b[1], 0); 
+                let currentAngle = 0;
+                
+                const gradientParts = sorted.map((x, i) => { 
+                    const start = (currentAngle / sum) * 100; 
+                    currentAngle += x[1]; 
+                    const end = (currentAngle / sum) * 100; 
+                    return `${colors[i % colors.length]} ${start}% ${end}%`; 
+                }).join(', ');
+                
+                const id = `${type === 'income' ? 'inc' : 'exp'}-${cur.toLowerCase()}`;
+                document.getElementById(`chart-${id}`).style.background = sum ? `conic-gradient(${gradientParts})` : '#111827';
+                document.getElementById(`legend-${id}`).innerHTML = sorted.map((x, i) => `
+                    <div class="legend-item">
+                        <span><span style="color:${colors[i % colors.length]}">●</span> ${x[0]}</span>
+                        <b>${((x[1]/sum)*100).toFixed(0)}%</b>
+                    </div>
+                `).join('');
+            }); 
+        });
+    }
+
+    // ФУНКЦИИ ОТКРЫТИЯ МОДАЛОК (ВОССТАНОВЛЕНЫ)
+    function openAddAssetModal() {
+        document.getElementById('invModalTitle').innerText = "Купить актив";
+        document.getElementById('editAssetId').value = "";
+        document.getElementById('invName').value = "";
+        document.getElementById('invQty').value = "";
+        document.getElementById('invPrice').value = "";
+        document.getElementById('invNkd').value = "";
+        document.getElementById('invFee').value = "";
+        document.getElementById('invBuyDate').value = new Date().toISOString().slice(0,10);
+        updateInvUI();
+        openModal('invModal');
+    }
+
+    function openPayoutModal() {
+        const assetSelect = document.getElementById('payAssetId');
+        const port = getActivePortfolio();
+        assetSelect.innerHTML = Object.keys(port).map(n => `<option value="${n}">${n}</option>`).join('');
+        document.getElementById('payAmount').value = "";
+        document.getElementById('payDate').value = new Date().toISOString().slice(0,10);
+        openModal('payoutModal');
+    }
+
+    function openSellModal() {
+        const assetSelect = document.getElementById('sellAssetId');
+        const port = getActivePortfolio();
+        assetSelect.innerHTML = Object.keys(port).filter(n => port[n].qty > 0).map(n => `<option value="${n}">${n}</option>`).join('');
+        document.getElementById('sellQty').value = "";
+        document.getElementById('sellPrice').value = "";
+        document.getElementById('sellDate').value = new Date().toISOString().slice(0,10);
+        updateSellMax();
+        openModal('sellModal');
+    }
+
+    function updateSellMax() {
+        const asset = document.getElementById('sellAssetId').value;
+        const port = getActivePortfolio();
+        const maxQty = port[asset] ? port[asset].qty : 0;
+        document.getElementById('sellMaxInfo').innerText = `Доступно: ${maxQty} шт.`;
+    }
+
+    function editAsset(id) { 
+        const a = db.inv.find(i => i.id === id); 
+        if (a) { 
+            document.getElementById('invModalTitle').innerText = "Редактировать актив"; 
+            document.getElementById('editAssetId').value = a.id; 
+            document.getElementById('invName').value = a.name; 
+            document.getElementById('invQty').value = a.qty; 
+            document.getElementById('invPrice').value = a.price; 
+            updateInvUI(); 
+            openModal('invModal'); 
+        } 
+    }
+
+    // ФУНКЦИИ СОХРАНЕНИЯ В БАЗУ
+    async function saveAsset() { 
+        const eid = document.getElementById('editAssetId').value;
+        const type = document.getElementById('invType').value; 
+        const calcYield = (type === 'bond') ? Number(document.getElementById('invCoupon').value) * Number(document.getElementById('invFreq').value) : Number(document.getElementById('invDiv').value); 
+        
+        const it = { 
+            id: eid ? Number(eid) : Date.now(), 
+            name: document.getElementById('invName').value, 
+            type: type, 
+            qty: Number(document.getElementById('invQty').value), 
+            price: Number(document.getElementById('invPrice').value), 
+            nkd: Number(document.getElementById('invNkd').value) || 0, 
+            fee: Number(document.getElementById('invFee').value) || 0, 
+            yield: calcYield || 0, 
+            date: document.getElementById('invBuyDate').value 
+        }; 
+        
+        await _supabase.from('investments').upsert([it]); 
+        loadFromCloud(); 
+        closeModal('invModal'); 
+    }
+
+    async function processSale() {
+        const assetName = document.getElementById('sellAssetId').value;
+        const qty = Number(document.getElementById('sellQty').value);
+        const price = Number(document.getElementById('sellPrice').value);
+        const date = document.getElementById('sellDate').value;
+        
+        const port = getActivePortfolio();
+        if (qty > port[assetName].qty) {
+            alert("Ошибка: нельзя продать больше, чем есть в портфеле!");
+            return;
+        }
+
+        // Записываем продажу в инвестиции с отрицательным количеством
+        const invRecord = {
+            id: Date.now(),
+            name: assetName,
+            type: 'sell',
+            qty: -qty, // Отрицательное количество
+            price: price,
+            nkd: 0,
+            fee: 0,
+            yield: 0,
+            date: date
+        };
+        await _supabase.from('investments').upsert([invRecord]);
+        
+        loadFromCloud();
+        closeModal('sellModal');
+    }
+
+    async function savePayout() { 
+        const it = { 
+            id: Date.now(), 
+            assetName: document.getElementById('payAssetId').value, 
+            amount: Number(document.getElementById('payAmount').value), 
+            date: document.getElementById('payDate').value 
+        }; 
+        await _supabase.from('payouts').upsert([it]); 
+        loadFromCloud(); 
+        closeModal('payoutModal'); 
+    }
+
+    // ЦЕЛИ И ТРАНЗАКЦИИ
+    function goalOp(id, type, name) { 
+        document.getElementById('gaTitle').innerText = name; 
+        document.getElementById('gaId').value = id; 
+        document.getElementById('gaType').value = type; 
+        openModal('gaModal'); 
+    }
+
+    async function processGoalAction() { 
+        const id = Number(document.getElementById('gaId').value);
+        const type = document.getElementById('gaType').value;
+        const amt = Number(document.getElementById('gaAmount').value);
+        
+        const g = db.goals.find(x => x.id === id); 
+        g.saved = type === 'add' ? g.saved + amt : g.saved - amt; 
+        
+        await _supabase.from('goals').upsert([g]); 
+        renderApp(); 
+        closeModal('gaModal'); 
+    }
+
+    async function saveGoal() { 
+        const it = { 
+            id: Date.now(), 
+            name: document.getElementById('gName').value, 
+            target: Number(document.getElementById('gTarget').value), 
+            saved: 0, 
+            cur: document.getElementById('gCur').value 
+        }; 
+        await _supabase.from('goals').upsert([it]); 
+        loadFromCloud(); 
+        closeModal('goalModal'); 
+    }
+
+    async function saveTransaction() { 
+        const it = { 
+            id: Date.now(), 
+            type: document.getElementById('txType').value, 
+            cur: document.getElementById('txCur').value, 
+            cat: document.getElementById('txCat').value, 
+            sub: document.getElementById('txSubCat').value, 
+            amt: Number(document.getElementById('txAmount').value), 
+            date: document.getElementById('txDate').value 
+        }; 
+        await _supabase.from('transactions').upsert([it]); 
+        loadFromCloud(); 
+        closeModal('txModal'); 
+    }
+
+    async function deleteItem(type, id, table) { 
+        if(confirm("Точно удалить? Данные не восстановить.")) { 
+            await _supabase.from(table).delete().eq('id', id); 
+            loadFromCloud(); 
+        } 
+    }
+
+    // НАВИГАЦИЯ И ИНТЕРФЕЙС
+    function openModal(id) { document.getElementById(id).classList.add('active'); } 
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    
+    function toggleEditMode(pageId) { 
+        document.querySelectorAll(`#${pageId} .btn-edit-actions`).forEach(el => {
+            el.style.display = (el.style.display === 'flex' ? 'none' : 'flex');
+        }); 
+    }
+
+    function showPage(id, el) { 
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+        el.classList.add('active'); 
+    }
+
+    function updateInvUI() { 
+        const t = document.getElementById('invType').value; 
+        document.getElementById('bondUI').style.display = t === 'bond' ? 'block' : 'none'; 
+        document.getElementById('stockUI').style.display = t === 'stock' ? 'block' : 'none'; 
+    }
+
+    function updateCategories() { 
+        const type = document.getElementById('txType').value; 
+        document.getElementById('txCat').innerHTML = Object.keys(catData[type]).map(c => `<option value="${c}">${c}</option>`).join(''); 
+        updateSubCategories(); 
+    }
+
+    function updateSubCategories() { 
+        const type = document.getElementById('txType').value;
+        const cat = document.getElementById('txCat').value; 
+        if(catData[type][cat]) { 
+            document.getElementById('txSubCat').innerHTML = catData[type][cat].map(s => `<option value="${s}">${s}</option>`).join(''); 
+        } 
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    updateCategories();
     document.getElementById('filterMonth').value = new Date().toISOString().slice(0,7);
+
 </script>
 </body>
 </html>
