@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v11.1</title>
+    <title>FinanceFlow Pro v11.2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -524,7 +524,6 @@
         const month = document.getElementById('filterMonth').value;
         const currentTx = db.tx.filter(t => t.date && t.date.startsWith(month));
         
-        // ОБЗОР
         let incByn = 0, expByn = 0, incRub = 0, expRub = 0; 
         currentTx.forEach(t => { 
             if (t.cur === 'BYN') t.type === 'income' ? incByn += t.amt : expByn += t.amt; 
@@ -536,14 +535,12 @@
         document.getElementById('ov-inc-rub').innerText = incRub.toLocaleString() + ' ₽'; 
         document.getElementById('ov-exp-rub').innerText = expRub.toLocaleString() + ' ₽';
 
-        // ТРАНЗАКЦИИ
         document.getElementById('table-tx').innerHTML = currentTx.sort((a,b) => new Date(b.date) - new Date(a.date)).map(t => `
             <tr><td>${t.date.slice(8, 10)}.${t.date.slice(5, 7)}</td><td>${t.cat}</td><td><b>${t.sub}</b></td><td style="color:${t.type === 'income' ? 'var(--green)' : 'var(--red)'}">${t.amt} ${t.cur}</td>
             <td><div class="btn-edit-actions"><button class="btn-action btn-edit" onclick="editTransaction(${t.id})">✎</button><button class="btn-action btn-del" onclick="deleteItem('tx', ${t.id}, 'transactions')">🗑</button></div></td></tr>
         `).join('');
         renderCurrencyCharts(currentTx);
 
-        // ИНВЕСТИЦИИ
         const { port, totalSalesProfit } = calculateInvestmentData();
         let totalGross = 0, totalProjGross = 0;
         db.payouts.forEach(p => totalGross += p.amount);
@@ -585,10 +582,9 @@
             <td><div class="btn-edit-actions"><button class="btn-action btn-del" onclick="deleteItem('payouts', ${p.id}, 'payouts')">🗑</button></div></td></tr>
         `).join('');
 
-        // ЦЕЛИ (ИСПРАВЛЕНО: Добавлен подсчет сколько осталось)
         document.getElementById('goals-list').innerHTML = db.goals.map(g => {
             const perc = Math.min((g.saved / g.target) * 100, 100);
-            const left = Math.max(g.target - g.saved, 0); // Сколько осталось копить
+            const left = Math.max(g.target - g.saved, 0);
             return `<div class="card"><b>${g.name}</b><br>
                 <small>Цель: ${g.target.toLocaleString()} ${g.cur}</small><br>
                 <small style="color:var(--text-dim)">Осталось: ${left.toLocaleString()} ${g.cur}</small>
@@ -597,7 +593,6 @@
         }).join('');
     }
 
-    // ИНВЕСТИЦИОННАЯ ЛОГИКА
     function calculateInvestmentData() {
         const port = {}; let totalSalesProfit = 0;
         const history = [...db.inv].sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -617,10 +612,19 @@
         return { port, totalSalesProfit };
     }
 
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ РАСЧЕТА ПРОДАЖ (ВЕРСИЯ 11.2)
     function calculateSaleProfit(sale) {
-        const history = [...db.inv].filter(i => i.name === sale.name && new Date(i.date) < new Date(sale.date) && i.qty > 0);
+        const history = [...db.inv].filter(i => 
+            i.name === sale.name && 
+            new Date(i.date) <= new Date(sale.date) && // Включаем текущий день
+            i.qty > 0 && 
+            i.id !== sale.id // Не считаем саму продажу за покупку
+        );
         let tQty = 0, tCost = 0;
-        history.forEach(h => { tQty += h.qty; tCost += (h.qty * h.price + (h.nkd||0) + (h.fee||0)); });
+        history.forEach(h => { 
+            tQty += h.qty; 
+            tCost += (h.qty * h.price + (h.nkd||0) + (h.fee||0)); 
+        });
         const avgBuy = tQty > 0 ? tCost / tQty : 0;
         const rub = (sale.price - avgBuy) * Math.abs(sale.qty);
         const perc = avgBuy > 0 ? ((sale.price / avgBuy) - 1) * 100 : 0;
@@ -649,7 +653,6 @@
         });
     }
 
-    // ХЕНДЛЕРЫ
     function openTxModal() { document.getElementById('txModalTitle').innerText = "Новая операция"; document.getElementById('editTxId').value = ""; document.getElementById('txDate').value = new Date().toISOString().slice(0,10); updateCategories(); openModal('txModal'); }
     function editTransaction(id) {
         const t = db.tx.find(x => x.id === id);
