@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v10.5</title>
+    <title>FinanceFlow Pro v10.6</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -54,7 +54,7 @@
 
 <div id="dashboard" style="display:none; width: 100%;">
     <div class="sidebar">
-        <div class="logo">FINANCE FLOW 10.5</div>
+        <div class="logo">FINANCE FLOW 10.6</div>
         <div class="nav-item active" onclick="showPage('overview', this)">Обзор</div>
         <div class="nav-item" onclick="showPage('transactions', this)">Транзакции</div>
         <div class="nav-item" onclick="showPage('investments', this)">Инвестиции</div>
@@ -92,39 +92,18 @@
                     <button class="btn-main" style="width: auto;" onclick="openModal('txModal')">+ Операция</button>
                 </div>
             </div>
-
             <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div class="card" style="margin-bottom:0">
-                        <div class="card-label" style="font-size:11px; color:var(--green)">Доход BYN (%)</div>
-                        <div id="chart-inc-byn" class="pie-chart"></div>
-                        <div id="legend-inc-byn"></div>
-                    </div>
-                    <div class="card" style="margin-bottom:0">
-                        <div class="card-label" style="font-size:11px; color:var(--red)">Расход BYN (%)</div>
-                        <div id="chart-exp-byn" class="pie-chart"></div>
-                        <div id="legend-exp-byn"></div>
-                    </div>
+                    <div class="card" style="margin-bottom:0"><div class="card-label" style="font-size:11px; color:var(--green)">Доход BYN (%)</div><div id="chart-inc-byn" class="pie-chart"></div><div id="legend-inc-byn"></div></div>
+                    <div class="card" style="margin-bottom:0"><div class="card-label" style="font-size:11px; color:var(--red)">Расход BYN (%)</div><div id="chart-exp-byn" class="pie-chart"></div><div id="legend-exp-byn"></div></div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div class="card" style="margin-bottom:0">
-                        <div class="card-label" style="font-size:11px; color:var(--green)">Доход RUB (%)</div>
-                        <div id="chart-inc-rub" class="pie-chart"></div>
-                        <div id="legend-inc-rub"></div>
-                    </div>
-                    <div class="card" style="margin-bottom:0">
-                        <div class="card-label" style="font-size:11px; color:var(--red)">Расход RUB (%)</div>
-                        <div id="chart-exp-rub" class="pie-chart"></div>
-                        <div id="legend-exp-rub"></div>
-                    </div>
+                    <div class="card" style="margin-bottom:0"><div class="card-label" style="font-size:11px; color:var(--green)">Доход RUB (%)</div><div id="chart-inc-rub" class="pie-chart"></div><div id="legend-inc-rub"></div></div>
+                    <div class="card" style="margin-bottom:0"><div class="card-label" style="font-size:11px; color:var(--red)">Расход RUB (%)</div><div id="chart-exp-rub" class="pie-chart"></div><div id="legend-exp-rub"></div></div>
                 </div>
             </div>
-
             <div class="card" style="padding:0; overflow:hidden; margin-top:20px;">
-                <table id="table-tx-container">
-                    <thead><tr><th>Дата</th><th>Кат.</th><th>Подкат</th><th>Сумма</th><th></th></tr></thead>
-                    <tbody id="table-tx"></tbody>
-                </table>
+                <table id="table-tx-container"><thead><tr><th>Дата</th><th>Кат.</th><th>Подкат</th><th>Сумма</th><th></th></tr></thead><tbody id="table-tx"></tbody></table>
                 <button id="btn-more-tx" class="btn-more" onclick="loadMore('tx')" style="display:none">ЕЩЁ (+20)</button>
             </div>
         </div>
@@ -150,77 +129,29 @@
             <div class="card"><table id="table-summary"></table></div>
             
             <div class="section-title">История сделок</div>
+            <div class="card" style="padding:0; overflow:hidden;"><table id="table-portfolio"></table><button id="btn-more-inv" class="btn-more" onclick="loadMore('inv')" style="display:none">ЕЩЁ (+20)</button></div>
+
+            <div class="section-title">История выплат</div>
             <div class="card" style="padding:0; overflow:hidden;">
-                <table id="table-portfolio"></table>
-                <button id="btn-more-inv" class="btn-more" onclick="loadMore('inv')" style="display:none">ЕЩЁ (+20)</button>
+                <table id="table-payouts-container"><thead><tr><th>Дата</th><th>Актив</th><th>Сумма (гряз)</th><th>Чистыми</th><th></th></tr></thead><tbody id="table-payouts"></tbody></table>
+                <button id="btn-more-payouts" class="btn-more" onclick="loadMore('payouts')" style="display:none">ЕЩЁ (+20)</button>
             </div>
 
             <div class="section-title">История продаж</div>
-            <div class="card" style="padding:0; overflow:hidden;">
-                <table id="table-sales-container">
-                    <thead><tr><th>Дата</th><th>Актив</th><th>Кол-во</th><th>Прибыль</th><th>%</th><th></th></tr></thead>
-                    <tbody id="table-sales"></tbody>
-                </table>
-                <button id="btn-more-sales" class="btn-more" onclick="loadMore('sales')" style="display:none">ЕЩЁ (+20)</button>
-            </div>
+            <div class="card" style="padding:0; overflow:hidden;"><table id="table-sales-container"><thead><tr><th>Дата</th><th>Актив</th><th>Кол-во</th><th>Прибыль</th><th>%</th><th></th></tr></thead><tbody id="table-sales"></tbody></table><button id="btn-more-sales" class="btn-more" onclick="loadMore('sales')" style="display:none">ЕЩЁ (+20)</button></div>
         </div>
 
         <div id="goals" class="page">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h1>Цели</h1>
-                <button class="btn-main" style="width: auto;" onclick="openModal('goalModal')">+ Новая</button>
-            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h1>Цели</h1><button class="btn-main" style="width: auto;" onclick="openModal('goalModal')">+ Новая</button></div>
             <div id="goals-list" class="grid"></div>
         </div>
     </div>
 </div>
 
-<div id="txModal" class="modal"><div class="modal-content">
-    <h3>Новая операция</h3>
-    <select id="txType" onchange="updateCategories()"><option value="expense">Расход</option><option value="income">Доход</option></select>
-    <select id="txCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select>
-    <select id="txCat" onchange="updateSubCategories()"></select><select id="txSubCat"></select>
-    <input type="number" id="txAmount" placeholder="Сумма">
-    <input type="text" id="txNote" placeholder="Заметка">
-    <input type="date" id="txDate">
-    <button class="btn-main" onclick="saveTransaction()">Сохранить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button>
-</div></div>
-
-<div id="sellModal" class="modal"><div class="modal-content">
-    <h3>Продать актив</h3>
-    <select id="sellAssetId" onchange="updateSellMax()"></select>
-    <div id="sellMaxInfo" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Доступно: 0 шт.</div>
-    <input type="number" id="sellQty" placeholder="Кол-во на продажу">
-    <input type="number" id="sellPrice" placeholder="Цена продажи (за 1 шт.)">
-    <input type="date" id="sellDate">
-    <button class="btn-main" style="background: var(--red);" onclick="processSale()">Зафиксировать продажу</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('sellModal')">Отмена</button>
-</div></div>
-
-<div id="invModal" class="modal"><div class="modal-content">
-    <h3>Купить актив</h3>
-    <select id="invType" onchange="updateInvUI()"><option value="bond">Облигация</option><option value="stock">Акция</option><option value="fund">Фонд</option></select>
-    <input type="text" id="invName" placeholder="Название">
-    <input type="number" id="invQty" placeholder="Кол-во шт.">
-    <input type="number" id="invPrice" placeholder="Цена за шт.">
-    <input type="number" id="invNkd" placeholder="Общий НКД">
-    <input type="number" id="invFee" placeholder="Комиссия">
-    <div id="bondUI"><input type="number" id="invCoupon" placeholder="Купон"><select id="invFreq"><option value="4">4 раза в год</option><option value="2">2 раза</option><option value="12">Ежемесячно</option></select></div>
-    <div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Дивиденды в год"></div>
-    <input type="date" id="invBuyDate">
-    <button class="btn-main" onclick="saveAsset()">Добавить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button>
-</div></div>
-
-<div id="payoutModal" class="modal"><div class="modal-content">
-    <h3>Зачислить выплату</h3>
-    <select id="payAssetId"></select>
-    <input type="number" id="payAmount" placeholder="Сумма (грязными)">
-    <button class="btn-main" onclick="savePayout()">Сохранить</button>
-    <button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button>
-</div></div>
-
+<div id="txModal" class="modal"><div class="modal-content"><h3>Новая операция</h3><select id="txType" onchange="updateCategories()"><option value="expense">Расход</option><option value="income">Доход</option></select><select id="txCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><select id="txCat" onchange="updateSubCategories()"></select><select id="txSubCat"></select><input type="number" id="txAmount" placeholder="Сумма"><input type="text" id="txNote" placeholder="Заметка"><input type="date" id="txDate"><button class="btn-main" onclick="saveTransaction()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('txModal')">Отмена</button></div></div>
+<div id="sellModal" class="modal"><div class="modal-content"><h3>Продать актив</h3><select id="sellAssetId" onchange="updateSellMax()"></select><div id="sellMaxInfo" style="font-size: 11px; color: var(--text-dim); margin-bottom: 10px;">Доступно: 0 шт.</div><input type="number" id="sellQty" placeholder="Кол-во на продажу"><input type="number" id="sellPrice" placeholder="Цена продажи (за 1 шт.)"><input type="date" id="sellDate"><button class="btn-main" style="background: var(--red);" onclick="processSale()">Зафиксировать продажу</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('sellModal')">Отмена</button></div></div>
+<div id="invModal" class="modal"><div class="modal-content"><h3>Купить актив</h3><select id="invType" onchange="updateInvUI()"><option value="bond">Облигация</option><option value="stock">Акция</option><option value="fund">Фонд</option></select><input type="text" id="invName" placeholder="Название"><input type="number" id="invQty" placeholder="Кол-во шт."><input type="number" id="invPrice" placeholder="Цена за шт."><input type="number" id="invNkd" placeholder="Общий НКД"><input type="number" id="invFee" placeholder="Комиссия"><div id="bondUI"><input type="number" id="invCoupon" placeholder="Купон"><select id="invFreq"><option value="4">4 раза в год</option><option value="2">2 раза</option><option value="12">Ежемесячно</option></select></div><div id="stockUI" style="display:none"><input type="number" id="invDiv" placeholder="Дивиденды в год"></div><input type="date" id="invBuyDate"><button class="btn-main" onclick="saveAsset()">Добавить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('invModal')">Отмена</button></div></div>
+<div id="payoutModal" class="modal"><div class="modal-content"><h3>Зачислить выплату</h3><select id="payAssetId"></select><input type="number" id="payAmount" placeholder="Сумма (грязными)"><input type="date" id="payDate"><button class="btn-main" onclick="savePayout()">Сохранить</button><button class="btn-outline" style="width:100%; border:none; margin-top:10px" onclick="closeModal('payoutModal')">Отмена</button></div></div>
 <div id="gaModal" class="modal"><div class="modal-content"><h3 id="gaTitle">Операция</h3><input type="hidden" id="gaId"><input type="hidden" id="gaType"><input type="number" id="gaAmount" placeholder="Сумма"><button class="btn-main" onclick="processGoalAction()">Подтвердить</button></div></div>
 <div id="goalModal" class="modal"><div class="modal-content"><h3>Создать цель</h3><input type="text" id="gName" placeholder="Название"><input type="number" id="gTarget" placeholder="Сумма"><select id="gCur"><option value="BYN">BYN</option><option value="RUB">RUB</option></select><button class="btn-main" onclick="saveGoal()">Создать</button></div></div>
 
@@ -301,11 +232,15 @@
         drawChart4('expense', 'RUB', curTx, 'chart-exp-rub', 'legend-exp-rub');
 
         const invSummary = getActivePortfolio();
-        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Год (гряз.)</th></tr></thead>${Object.keys(invSummary).filter(n => invSummary[n].qty > 0).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].qty} шт.</td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td>${invSummary[n].proj_gross.toLocaleString()} ₽</td></tr>`).join('')}`;
+        document.getElementById('table-summary').innerHTML = `<thead><tr><th>Актив</th><th>Кол-во</th><th>Вложено</th><th>Год (гряз)</th><th>Прибыль</th></tr></thead>${Object.keys(invSummary).filter(n => invSummary[n].qty > 0).map(n => `<tr><td><b>${n}</b></td><td>${invSummary[n].qty} шт.</td><td>${invSummary[n].cost.toLocaleString()} ₽</td><td>${invSummary[n].proj_gross.toLocaleString()} ₽</td><td style="color:var(--green)">+${invSummary[n].real_earned.toLocaleString()} ₽</td></tr>`).join('')}`;
 
         const sortedInv = db.inv.slice().sort((a,b) => b.id - a.id);
         document.getElementById('table-portfolio').innerHTML = sortedInv.slice(0, limits.inv).map(i => `<tr><td>${i.date}</td><td>${i.name}</td><td>${((i.qty*i.price)+(i.nkd||0)+(i.fee||0)).toLocaleString()} ₽</td><td><button class="btn-del-hidden" onclick="deleteItem('inv', ${i.id}, 'investments')">🗑</button></td></tr>`).join('');
         document.getElementById('btn-more-inv').style.display = sortedInv.length > limits.inv ? 'block' : 'none';
+
+        const sortedPayouts = db.payouts.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('table-payouts').innerHTML = sortedPayouts.slice(0, limits.payouts).map(p => `<tr><td>${p.date ? p.date.split('T')[0] : '---'}</td><td><b>${p.assetName}</b></td><td>${p.amount.toLocaleString()} ₽</td><td style="color:var(--green)">${(p.amount*TAX_MULT).toLocaleString()} ₽</td><td><button class="btn-del-hidden" onclick="deleteItem('payouts', ${p.id}, 'payouts')">🗑</button></td></tr>`).join('');
+        document.getElementById('btn-more-payouts').style.display = sortedPayouts.length > limits.payouts ? 'block' : 'none';
 
         const sortedSales = db.sales.slice().sort((a,b) => b.id - a.id);
         document.getElementById('table-sales').innerHTML = sortedSales.slice(0, limits.sales).map(s => `<tr><td>${s.date}</td><td><b>${s.assetName}</b></td><td>${s.qty} шт.</td><td style="color:${s.profit>=0?'#10b981':'#ef4444'}">${s.profit.toLocaleString()} ₽</td><td>${s.profitPerc.toFixed(1)}%</td><td><button class="btn-del-hidden" onclick="deleteItem('sales', ${s.id}, 'sales')">🗑</button></td></tr>`).join('');
@@ -320,7 +255,6 @@
         let tPG = 0; Object.values(invSummary).forEach(s => tPG += s.proj_gross);
         let tPaG = 0; db.payouts.forEach(p => tPaG += p.amount);
         
-        // Обновляем виджеты в "Обзоре"
         const stats = {
             passive: (tPG * TAX_MULT).toLocaleString() + ' ₽',
             realized: realizedProfit.toLocaleString() + ' ₽',
@@ -332,15 +266,33 @@
         document.getElementById('ov-passive').innerText = stats.passive;
         document.getElementById('ov-total-payouts-gross').innerText = stats.payoutsG;
         document.getElementById('ov-total-payouts-net').innerText = stats.payoutsN;
-
-        // Обновляем виджеты в "Инвестициях"
         document.getElementById('inv-realized-profit').innerText = stats.realized;
         document.getElementById('inv-passive').innerText = stats.passive;
         document.getElementById('inv-total-payouts-gross').innerText = stats.payoutsG;
         document.getElementById('inv-total-payouts-net').innerText = stats.payoutsN;
     }
 
-    // Вспомогательные функции (без изменений)
+    function getActivePortfolio() {
+        const summary = {};
+        db.inv.forEach(i => {
+            if(!summary[i.name]) summary[i.name] = { cost: 0, qty: 0, proj_gross: 0, real_earned: 0 };
+            summary[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0);
+            summary[i.name].qty += i.qty;
+            summary[i.name].proj_gross += (i.qty * i.yield);
+        });
+        db.payouts.forEach(p => { if(summary[p.assetName]) summary[p.assetName].real_earned += p.amount; });
+        db.sales.forEach(s => {
+            if(summary[s.assetName]) {
+                const avg = summary[s.assetName].cost / summary[s.assetName].qty;
+                const yieldPerUnit = summary[s.assetName].proj_gross / summary[s.assetName].qty;
+                summary[s.assetName].qty -= s.qty;
+                summary[s.assetName].cost -= (s.qty * avg);
+                summary[s.assetName].proj_gross -= (s.qty * yieldPerUnit);
+            }
+        });
+        return summary;
+    }
+
     function drawChart4(type, cur, txList, chartId, legendId) {
         const filtered = txList.filter(t => t.type === type && t.cur === cur);
         let sums = {}, total = 0; 
@@ -356,26 +308,6 @@
         document.getElementById(legendId).innerHTML = leg || '<div style="font-size:10px; color:var(--text-dim); text-align:center">Нет данных</div>';
     }
 
-    function getActivePortfolio() {
-        const summary = {};
-        db.inv.forEach(i => {
-            if(!summary[i.name]) summary[i.name] = { cost: 0, qty: 0, proj_gross: 0 };
-            summary[i.name].cost += (i.qty * i.price) + (i.nkd || 0) + (i.fee || 0);
-            summary[i.name].qty += i.qty;
-            summary[i.name].proj_gross += (i.qty * i.yield);
-        });
-        db.sales.forEach(s => {
-            if(summary[s.assetName]) {
-                const avg = summary[s.assetName].cost / summary[s.assetName].qty;
-                const yieldPerUnit = summary[s.assetName].proj_gross / summary[s.assetName].qty;
-                summary[s.assetName].qty -= s.qty;
-                summary[s.assetName].cost -= (s.qty * avg);
-                summary[s.assetName].proj_gross -= (s.qty * yieldPerUnit);
-            }
-        });
-        return summary;
-    }
-
     function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='txModal') updateCategories(); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
     function showPage(id, el) { 
@@ -387,7 +319,11 @@
     function loadMore(type) { limits[type] += 20; renderApp(); }
     function toggleEditMode(page) {
         if(page === 'transactions') document.getElementById('table-tx-container').classList.toggle('edit-mode');
-        if(page === 'investments') { document.getElementById('table-portfolio').classList.toggle('edit-mode'); document.getElementById('table-sales-container').classList.toggle('edit-mode'); }
+        if(page === 'investments') { 
+            document.getElementById('table-portfolio').classList.toggle('edit-mode'); 
+            document.getElementById('table-sales-container').classList.toggle('edit-mode'); 
+            document.getElementById('table-payouts-container').classList.toggle('edit-mode');
+        }
     }
 
     async function saveTransaction() {
@@ -411,7 +347,7 @@
     }
     async function savePayout() {
         const name = document.getElementById('payAssetId').value;
-        const item = { id: Date.now(), assetName: name, amount: Number(document.getElementById('payAmount').value), date: new Date().toISOString() };
+        const item = { id: Date.now(), assetName: name, amount: Number(document.getElementById('payAmount').value), date: document.getElementById('payDate').value };
         db.payouts.push(item); await _supabase.from('payouts').upsert([item]); renderApp(); closeModal('payoutModal');
     }
     async function goalOp(id, type, name) { 
@@ -469,6 +405,7 @@
     document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
     document.getElementById('invBuyDate').value = new Date().toISOString().slice(0,10);
     document.getElementById('sellDate').value = new Date().toISOString().slice(0,10);
+    document.getElementById('payDate').value = new Date().toISOString().slice(0,10);
 </script>
 </body>
 </html>
