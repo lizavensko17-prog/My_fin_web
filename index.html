@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinanceFlow Pro v10.8.3</title>
+    <title>FinanceFlow Pro v10.8.4</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg-color: #0b1120; --card-bg: #1e293b; --accent-blue: #2563eb; --text-main: #f1f5f9; --text-dim: #94a3b8; --green: #10b981; --red: #ef4444; --yellow: #f59e0b; }
@@ -44,7 +44,7 @@
     <button onclick="handleLogin()" class="btn-main" style="width: 280px;">Войти</button>
 </div>
 <div id="dashboard" style="display:none; width: 100%;">
-    <div class="sidebar"><div class="logo">FINANCE FLOW 10.8.3</div>
+    <div class="sidebar"><div class="logo">FINANCE FLOW 10.8.4</div>
         <div class="nav-item active" onclick="showPage('overview', this)">Обзор</div>
         <div class="nav-item" onclick="showPage('transactions', this)">Транзакции</div>
         <div class="nav-item" onclick="showPage('investments', this)">Инвестиции</div>
@@ -136,9 +136,18 @@
     function showPage(id, el) { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); }
     function updateInvUI() { const t = document.getElementById('invType').value; document.getElementById('bondUI').style.display = t === 'bond' ? 'block' : 'none'; document.getElementById('stockUI').style.display = t === 'stock' ? 'block' : 'none'; }
     async function deleteItem(type, id, table) { if(confirm("Удалить?")) { await _supabase.from(table).delete().eq('id', id); loadFromCloud(); } }
-    const catData = { income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"] }, expense: { "Квартира": ["коммуналка"], "Еда": ["заказ"], "Сбережения": ["инвестиции"] } };
+    
+    // ВОТ ЗДЕСЬ ВОССТАНОВЛЕН ПОЛНЫЙ СЛОВАРЬ КАТЕГОРИЙ
+    const catData = { 
+        income: { "Мама": ["Основное"], "Репетитор BYN": ["Основное"], "Репетитор RUS": ["Основное"], "Подарки": ["Основное"] }, 
+        expense: { "Квартира": ["за квартиру", "коммуналка", "интернет", "телефоны"], "Еда": ["мясо", "молочка", "овощи", "заказ"], "Машина": ["бензин"], "Сбережения": ["инвестиции"], "Развлечения": ["красота", "книги", "учеба"], "Дом": ["декор"], "Путешествия": ["виза"] } 
+    };
     function updateCategories() { const t = document.getElementById('txType').value; document.getElementById('txCat').innerHTML = Object.keys(catData[t]).map(c => `<option value="${c}">${c}</option>`).join(''); updateSubCategories(); }
-    function updateSubCategories() { const t = document.getElementById('txType').value, c = document.getElementById('txCat').value; document.getElementById('txSubCat').innerHTML = catData[t][c].map(s => `<option value="${s}">${s}</option>`).join(''); }
+    function updateSubCategories() { const t = document.getElementById('txType').value, c = document.getElementById('txCat').value; if(catData[t][c]) { document.getElementById('txSubCat').innerHTML = catData[t][c].map(s => `<option value="${s}">${s}</option>`).join(''); } }
+    
+    // И ДОБАВЛЕН ЗАПУСК ЭТОЙ ФУНКЦИИ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+    updateCategories();
+
     document.getElementById('filterMonth').value = new Date().toISOString().slice(0,7);
 </script>
 </body>
